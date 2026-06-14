@@ -150,10 +150,44 @@ export class GalaxyService {
     this.activeKey.set('');
     this.isDbConnected.set(false);
     this.supabaseClient = null;
+    this.isAdmin.set(false);
     this.connectionStatusText.set('Offline Sandbox Mode');
     this.connectionStatusClass.set('badge badge-blue');
     this.showToast('Disconnected from cloud database');
     this.loadData();
+  }
+
+  async login(email: string, password: string): Promise<boolean> {
+    if (this.isDbConnected() && this.supabaseClient) {
+      const { error } = await this.supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+      if (error) {
+        throw error;
+      }
+      this.isAdmin.set(true);
+      return true;
+    } else {
+      if (email === 'admin' && password === 'admin') {
+        this.isAdmin.set(true);
+        return true;
+      } else {
+        throw new Error('Invalid username or password.');
+      }
+    }
+  }
+
+  async logout() {
+    if (this.isDbConnected() && this.supabaseClient) {
+      try {
+        await this.supabaseClient.auth.signOut();
+      } catch (err) {
+        console.error('Supabase Auth error during signOut', err);
+      }
+    }
+    this.isAdmin.set(false);
+    this.showToast('Logged out successfully');
   }
 
   // --- CRUD DATA LOADING ---

@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "predeploy": "ng build --base-href /spacecraft-map/",
+    "deploy": "gh-pages -d dist/spacecraft/browser"
   },
   "private": true,
   "packageManager": "npm@10.9.2",
@@ -25,6 +27,7 @@
     "@angular/build": "^21.2.15",
     "@angular/cli": "^21.2.15",
     "@angular/compiler-cli": "^21.2.0",
+    "gh-pages": "^6.3.0",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",

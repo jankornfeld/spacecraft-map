@@ -107,10 +107,8 @@ export class App implements OnInit {
   }
 
   // --- TOP ACTION BUTTONS ---
-  logout() {
-    this.galaxyService.disconnectDb();
-    this.galaxyService.isAdmin.set(false);
-    this.galaxyService.showToast('Logged out successfully');
+  async logout() {
+    await this.galaxyService.logout();
 
     // Switch back to search tab if admin settings were open
     if (this.activeTab() === 'admin-tab' || this.activeTab() === 'settings-tab') {
@@ -129,36 +127,25 @@ export class App implements OnInit {
     e.preventDefault();
     this.loginErrorMsg.set('');
 
-    let loginSuccess = false;
-
-    if (this.galaxyService.isDbConnected()) {
-      // Connects via Supabase auth (since we don't have mock auth in service)
-      this.galaxyService.showToast('Connecting with Supabase Auth...', 'info');
-      // Supabase signInWithPassword mock logic or direct execution
-      // We can implement simple credentials check or actual connection
-      if (this.loginUser === 'admin' && this.loginPass === 'admin') {
-        loginSuccess = true;
-      } else {
-        this.loginErrorMsg.set('Invalid credentials for sandbox admin mode.');
+    try {
+      if (this.galaxyService.isDbConnected()) {
+        this.galaxyService.showToast('Connecting with Supabase Auth...', 'info');
       }
-    } else {
-      // Offline local mode: credentials are admin/admin
-      if (this.loginUser === 'admin' && this.loginPass === 'admin') {
-        loginSuccess = true;
-      } else {
-        this.loginErrorMsg.set('Invalid username or password.');
-      }
-    }
-
-    if (loginSuccess) {
-      this.galaxyService.isAdmin.set(true);
-      this.isLoginModalOpen.set(false);
-      this.loginUser = '';
-      this.loginPass = '';
-      this.galaxyService.showToast('Administrator Mode Unlocked', 'success');
       
-      // Switch to Creator/Admin tab automatically
-      this.activeTab.set('admin-tab');
+      const loginSuccess = await this.galaxyService.login(this.loginUser, this.loginPass);
+      
+      if (loginSuccess) {
+        this.isLoginModalOpen.set(false);
+        this.loginUser = '';
+        this.loginPass = '';
+        this.galaxyService.showToast('Administrator Mode Unlocked', 'success');
+        
+        // Switch to Creator/Admin tab automatically
+        this.activeTab.set('admin-tab');
+      }
+    } catch (err: any) {
+      console.error(err);
+      this.loginErrorMsg.set(err.message || 'Authentication failed.');
     }
   }
 
