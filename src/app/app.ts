@@ -21,7 +21,7 @@ export class App implements OnInit {
   sectorFormName = '';
   sectorColorInput = '#a855f7';
   sectorPolygonInput = '';
-  
+
   // Star System Creator
   systemFormId = '';
   systemFormName = '';
@@ -30,18 +30,18 @@ export class App implements OnInit {
   systemFormY = 0;
   systemFormSectorId = '';
   systemFormStarColor = '#f5d271';
-  
+
   // Planet Creator
   planetFormId = '';
   planetFormName = '';
   planetFormSystemId = '';
-  
+
   // Space Station Creator
   stationFormId = '';
   stationFormName = '';
   stationFormOwner = 'Independent';
   stationFormSystemId = '';
-  
+
   // Connection Creator
   connFormFromId = '';
   connFormToId = '';
@@ -131,15 +131,15 @@ export class App implements OnInit {
       if (this.galaxyService.isDbConnected()) {
         this.galaxyService.showToast('Connecting with Supabase Auth...', 'info');
       }
-      
+
       const loginSuccess = await this.galaxyService.login(this.loginUser, this.loginPass);
-      
+
       if (loginSuccess) {
         this.isLoginModalOpen.set(false);
         this.loginUser = '';
         this.loginPass = '';
         this.galaxyService.showToast('Administrator Mode Unlocked', 'success');
-        
+
         // Switch to Creator/Admin tab automatically
         this.activeTab.set('admin-tab');
       }
@@ -205,10 +205,10 @@ export class App implements OnInit {
   toggleAllSectors() {
     const sectors = this.galaxyService.sectors();
     if (sectors.length === 0) return;
-    
+
     const hidden = this.galaxyService.hiddenSectorIds();
     const allVisible = sectors.every(sec => !hidden.has(sec.id));
-    
+
     if (allVisible) {
       this.galaxyService.hiddenSectorIds.set(new Set(sectors.map(sec => sec.id)));
       this.galaxyService.showToast('Hidden all sector boundaries');
@@ -249,7 +249,7 @@ export class App implements OnInit {
   // --- DETAILS PANEL ACTIONS ---
   selectSystem(sysId: string) {
     this.galaxyService.selectedSystemId.set(sysId);
-    
+
     // Clear sub-selections
     const sysPlanets = this.galaxyService.selectedSystemPlanets();
     if (sysPlanets.length > 0) {
@@ -257,18 +257,12 @@ export class App implements OnInit {
     } else {
       this.galaxyService.selectedPlanetId.set(null);
     }
-    
+
     const sysStations = this.galaxyService.selectedSystemStations();
     if (sysStations.length > 0) {
       this.galaxyService.selectedStationId.set(sysStations[0].id);
     } else {
       this.galaxyService.selectedStationId.set(null);
-    }
-
-    // Centering star node
-    const sys = this.galaxyService.selectedSystem();
-    if (sys) {
-      this.flyToSystem(sys.x, sys.y);
     }
   }
 
@@ -372,7 +366,7 @@ export class App implements OnInit {
   async createSector(e: Event) {
     e.preventDefault();
     if (!this.galaxyService.isAdmin()) return;
-    
+
     try {
       const polygon = JSON.parse(this.sectorPolygonInput);
       if (!Array.isArray(polygon) || polygon.some(p => !Array.isArray(p) || p.length !== 2)) {
@@ -400,7 +394,7 @@ export class App implements OnInit {
       };
 
       await this.galaxyService.dbSaveSector(newSector);
-      
+
       // Reset form
       this.sectorFormId = '';
       this.sectorFormName = '';
@@ -429,7 +423,7 @@ export class App implements OnInit {
     };
 
     await this.galaxyService.dbSaveSystem(newSys);
-    
+
     // Reset form
     this.systemFormId = '';
     this.systemFormName = '';
@@ -453,7 +447,7 @@ export class App implements OnInit {
     };
 
     await this.galaxyService.dbSavePlanet(newPlanet);
-    
+
     // Reset
     this.planetFormId = '';
     this.planetFormName = '';
@@ -473,7 +467,7 @@ export class App implements OnInit {
     };
 
     await this.galaxyService.dbSaveStation(newStation);
-    
+
     // Reset
     this.stationFormId = '';
     this.stationFormName = '';
@@ -495,9 +489,9 @@ export class App implements OnInit {
       to_system_id: this.connFormToId,
       cost: this.connFormCost
     };
-    
+
     await this.galaxyService.dbSaveConnection(newConn);
-    
+
     // Reset
     this.connFormFromId = '';
     this.connFormToId = '';
@@ -518,7 +512,7 @@ export class App implements OnInit {
     // Map bidirectional list into structured object to match template format
     const sysList = this.galaxyService.systems();
     const connList = this.galaxyService.connections();
-    
+
     sysList.forEach(s => exportData.connections[s.id] = []);
     connList.forEach(c => {
       if (exportData.connections[c.from_system_id]) {
@@ -589,10 +583,10 @@ export class App implements OnInit {
           for (const [fromId, list] of Object.entries(data.connections) as [string, any][]) {
             for (const c of list) {
               if (this.galaxyService.systems().some(s => s.id === c.id)) {
-                await this.galaxyService.dbSaveConnection({ 
-                  from_system_id: fromId, 
-                  to_system_id: c.id, 
-                  cost: c.cost 
+                await this.galaxyService.dbSaveConnection({
+                  from_system_id: fromId,
+                  to_system_id: c.id,
+                  cost: c.cost
                 });
               }
             }
@@ -741,7 +735,7 @@ export class App implements OnInit {
   onMapDblClick(e: MouseEvent) {
     const target = e.target as SVGElement;
     if (!this.isPlaceMode() || !this.galaxyService.isAdmin()) return;
-    
+
     const svg = document.getElementById("map-viewport");
     if (!svg) return;
 
@@ -789,7 +783,7 @@ export class App implements OnInit {
 
     let minX = Infinity, minY = Infinity;
     let maxX = -Infinity, maxY = -Infinity;
-    
+
     systems.forEach(s => {
       if (s.x < minX) minX = s.x;
       if (s.x > maxX) maxX = s.x;
@@ -805,7 +799,7 @@ export class App implements OnInit {
     const padding = 100;
     const scaleX = (width - padding) / mapW;
     const scaleY = (height - padding) / mapH;
-    
+
     this.scale = Math.min(scaleX, scaleY, 1.5);
     this.scale = Math.max(this.scale, 0.1);
 
@@ -838,7 +832,7 @@ export class App implements OnInit {
     const b = this.galaxyService.bounds();
     const step = 200;
     const lines = [];
-    
+
     for (let x = Math.floor(b.minX / step) * step; x <= b.maxX; x += step) {
       lines.push({ x1: x, y1: b.minY, x2: x, y2: b.maxY });
     }
@@ -865,8 +859,8 @@ export class App implements OnInit {
   isLaneActivePath(fromId: string, toId: string): boolean {
     const route = this.galaxyService.calculatedRoute();
     if (!route) return false;
-    return route.steps.some(s => 
-      (s.fromId === fromId && s.toId === toId) || 
+    return route.steps.some(s =>
+      (s.fromId === fromId && s.toId === toId) ||
       (s.fromId === toId && s.toId === fromId)
     );
   }
@@ -936,7 +930,7 @@ export class App implements OnInit {
     e.preventDefault();
     this.dropzoneBorderColor = 'var(--border-light)';
     this.dropzoneBg = 'rgba(0, 0, 0, 0.15)';
-    
+
     if (e.dataTransfer?.files) {
       const files = Array.from(e.dataTransfer.files);
       this.handleSstFiles(files);
@@ -970,19 +964,19 @@ export class App implements OnInit {
     if (!this.sstWorker) {
       try {
         this.sstWorker = new Worker(new URL('./workers/sst.worker', import.meta.url), { type: 'module' });
-        
+
         this.sstWorker.onmessage = async (event: MessageEvent) => {
           const msg = event.data;
-          
+
           if (msg.type === "progress") {
             this.isWorkerScanning.set(true);
             this.workerStatusText.set(`Reading save files... ${msg.progress.fileIndex + 1}/${msg.progress.fileCount}`);
             this.workerProgress.set((msg.progress.fileIndex / msg.progress.fileCount) * 100);
-          } 
+          }
           else if (msg.type === "complete") {
             this.isWorkerScanning.set(false);
             await this.importParsedWorkerLayout(msg.result);
-          } 
+          }
           else if (msg.type === "error") {
             this.isWorkerScanning.set(false);
             this.galaxyService.showToast(`SST Scan Failed: ${msg.error}`, "error");
