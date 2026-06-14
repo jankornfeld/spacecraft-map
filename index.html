@@ -181,13 +181,8 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="system-star-color-select">Star Type & Color</label>
-                  <select id="system-star-color-select">
-                    <option value="Yellow_DefaultStar">Yellow (Default Star)</option>
-                    <option value="Blue_BlueStar">Blue (Blue Star)</option>
-                    <option value="Red_RedStar">Red (Red Star)</option>
-                    <option value="Purple_PurpleStar">Purple (Purple Star)</option>
-                  </select>
+                  <label for="system-star-color-input">Star Color</label>
+                  <input type="color" id="system-star-color-input" value="#f5d271" style="height: 40px; padding: 2px; cursor: pointer;">
                 </div>
                 <button type="submit" class="btn btn-sm">Save Star System</button>
               </form>
@@ -205,7 +200,7 @@
                   <label for="planet-name-input">Planet Name</label>
                   <input type="text" id="planet-name-input" placeholder="e.g. Orion-I" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                   <label for="planet-designation-input">Designation Code</label>
                   <input type="text" id="planet-designation-input" placeholder="e.g. OR-912A-1">
                 </div>
@@ -402,8 +397,8 @@
 
       <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
         <div>Sector: <span id="detail-system-sector" style="font-weight: 600;">Sector Name</span></div>
-        <div>Coordinates: <span id="detail-system-coords" style="font-family: var(--font-mono); color: var(--text-secondary);">X: 0, Y: 0</span></div>
-        <div>Star Classification: <span id="detail-system-star-type" class="badge badge-blue">Star Type</span></div>
+        <div style="display: none;">Coordinates: <span id="detail-system-coords" style="font-family: var(--font-mono); color: var(--text-secondary);">X: 0, Y: 0</span></div>
+        <div style="display: none;">Star Classification: <span id="detail-system-star-type" class="badge badge-blue">Star Type</span></div>
         
         <div style="display: flex; gap: 8px; margin: 4px 0;">
           <button id="route-set-start-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as Start</button>
@@ -423,7 +418,7 @@
           
           <!-- Planet Details Sub-Panel -->
           <div id="planet-details-subpanel" style="display: none;">
-            <div style="font-size: 0.85rem; margin-bottom: 8px;">
+            <div style="font-size: 0.85rem; margin-bottom: 8px; display: none;">
               Designation: <span id="detail-planet-designation" style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
             </div>
             

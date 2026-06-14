@@ -859,11 +859,14 @@ function renderStars() {
       const sec = sectors.find(s => s.id === sys.sectorId);
       if (sec) sysColor = sec.color;
     } else {
-      // Color by star classification type
-      if (sys.starColor === "Yellow") sysColor = "#f5d271";
+      // Color by star color
+      if (sys.starColor && sys.starColor.startsWith("#")) {
+        sysColor = sys.starColor;
+      } else if (sys.starColor === "Yellow") sysColor = "#f5d271";
       else if (sys.starColor === "Blue") sysColor = "#5aa9e6";
       else if (sys.starColor === "Red") sysColor = "#ef4444";
       else if (sys.starColor === "Purple") sysColor = "#c084fc";
+      else sysColor = sys.starColor || "#ffffff";
     }
 
     // Group container
@@ -931,7 +934,17 @@ function selectSystem(sysId) {
 
   const starBadge = document.getElementById("detail-system-star-type");
   starBadge.textContent = sys.starType.replace("Star", " Star");
-  starBadge.className = `badge badge-${getStarColorClass(sys.starColor)}`;
+  const colorClass = getStarColorClass(sys.starColor);
+  starBadge.className = `badge badge-${colorClass}`;
+  if (sys.starColor && sys.starColor.startsWith("#")) {
+    starBadge.style.backgroundColor = sys.starColor + "26"; // 15% opacity
+    starBadge.style.color = sys.starColor;
+    starBadge.style.borderColor = sys.starColor + "4d"; // 30% opacity
+  } else {
+    starBadge.style.backgroundColor = "";
+    starBadge.style.color = "";
+    starBadge.style.borderColor = "";
+  }
 
   // Populate Planets list
   const planetSelect = document.getElementById("detail-planet-select");
@@ -1161,10 +1174,16 @@ function runSearch() {
 
     const sec = sectors.find(s => s.id === sys.sectorId);
 
+    const colorClass = getStarColorClass(sys.starColor);
+    const badgeStyle = (sys.starColor && sys.starColor.startsWith("#"))
+      ? `style="background-color: ${sys.starColor}26; color: ${sys.starColor}; border: 1px solid ${sys.starColor}4d;"`
+      : "";
+    const displayColor = (sys.starColor && sys.starColor.startsWith("#")) ? "Custom" : sys.starColor;
+
     item.innerHTML = `
       <div class="result-header">
         <span>${sys.name}</span>
-        <span class="badge badge-${getStarColorClass(sys.starColor)}">${sys.starColor}</span>
+        <span class="badge badge-${colorClass}" ${badgeStyle}>${displayColor}</span>
       </div>
       <div class="result-subtitle">Sector: ${sec ? sec.name : 'Unknown'} • Code: ${sys.designation || 'None'}</div>
     `;
@@ -1463,9 +1482,8 @@ function initForms() {
     const y = parseFloat(document.getElementById("system-y-input").value);
     const sectorId = document.getElementById("system-sector-select").value;
 
-    const starVal = document.getElementById("system-star-color-select").value.split("_");
-    const starColor = starVal[0];
-    const starType = starVal[1];
+    const starColor = document.getElementById("system-star-color-input").value;
+    const starType = "DefaultStar";
 
     const newSys = {
       id,
@@ -2202,7 +2220,7 @@ async function importParsedWorkerLayout(result) {
         id: `planet-scanned-${tp.slot}`,
         name: `Planet ${tp.slot}`,
         systemId: newSys.id,
-        designation: `PLANET-SEED-${result.seed}-${tp.slot}`,
+        designation: "",
         resources: [],
         deposits: [],
         stations: []
