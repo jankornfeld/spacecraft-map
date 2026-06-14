@@ -30,6 +30,7 @@ let isDbConnected = false;
 // Application Datasets
 let sectors = [];
 let systems = [];
+let planets = []; // Format: [ { id, name, systemId, designation, resources: [], deposits: [], stations: [] } ]
 let connections = []; // Format: [ { from_system_id, to_system_id, cost }, ... ]
 let bounds = { minX: 0, minY: 0, maxX: 2000, maxY: 2000 };
 
@@ -42,8 +43,11 @@ let startX = 0;
 let startY = 0;
 
 let isPlaceMode = false;
+let isSectorPinMode = false;
+let tempSectorPoints = [];
 let isAdmin = false;
 let selectedSystemId = null;
+let selectedPlanetId = null;
 
 // Routing State
 let routeStartSystemId = null;
@@ -163,11 +167,20 @@ async function loadData() {
         sectorId: sys.sector_id,
         color: sys.color,
         x: sys.x,
-        y: sys.y,
-        planetCount: sys.planet_count,
-        resources: sys.resources || [],
-        deposits: sys.deposits || [],
-        stations: typeof sys.stations === 'string' ? JSON.parse(sys.stations) : (sys.stations || [])
+        y: sys.y
+      }));
+
+      // 2b. Load Planets
+      const { data: planetData, error: pErr } = await supabaseClient.from("planets").select("*");
+      if (pErr) throw pErr;
+      planets = planetData.map(p => ({
+        id: p.id,
+        name: p.name,
+        systemId: p.system_id,
+        designation: p.designation,
+        resources: p.resources || [],
+        deposits: p.deposits || [],
+        stations: typeof p.stations === 'string' ? JSON.parse(p.stations) : (p.stations || [])
       }));
 
       // 3. Load Connections
@@ -197,11 +210,13 @@ function loadDataFromLocalStorage() {
   const localSectors = safeGetItem("spacecraft_sectors");
   const localSystems = safeGetItem("spacecraft_systems");
   const localConns = safeGetItem("spacecraft_connections");
+  const localPlanets = safeGetItem("spacecraft_planets");
 
   if (localSectors && localSystems && localConns) {
     sectors = JSON.parse(localSectors);
     systems = JSON.parse(localSystems);
     connections = JSON.parse(localConns);
+    planets = localPlanets ? JSON.parse(localPlanets) : [];
     calculateBounds();
   }
 
@@ -215,6 +230,7 @@ function saveLocalBackup() {
     safeSetItem("spacecraft_sectors", JSON.stringify(sectors));
     safeSetItem("spacecraft_systems", JSON.stringify(systems));
     safeSetItem("spacecraft_connections", JSON.stringify(connections));
+    safeSetItem("spacecraft_planets", JSON.stringify(planets));
   }
 }
 
@@ -298,20 +314,47 @@ async function dbSaveSystem(sys) {
       sector_id: sys.sectorId,
       color: sys.color,
       x: sys.x,
-      y: sys.y,
-      planet_count: sys.planetCount,
-      resources: sys.resources,
-      deposits: sys.deposits,
-      stations: JSON.stringify(sys.stations)
+      y: sys.y
+    });
+    if (error) {
+      console.error(error);
+      showToast("Error syncing system in Supabase", "error");
+    } else {
+      showToast(`System '${sys.name}' synced successfully`, "success");
+    }
+  } else {
+    showToast(`System '${sys.name}' saved locally`, "success");
+  }
+}
+
+async function dbSavePlanet(planet) {
+  const index = planets.findIndex(p => p.id === planet.id);
+  if (index !== -1) {
+    planets[index] = planet;
+  } else {
+    planets.push(planet);
+  }
+
+  saveLocalBackup();
+
+  if (isDbConnected) {
+    const { error } = await supabaseClient.from("planets").upsert({
+      id: planet.id,
+      name: planet.name,
+      system_id: planet.systemId,
+      designation: planet.designation,
+      resources: planet.resources,
+      deposits: planet.deposits,
+      stations: JSON.stringify(planet.stations)
     });
     if (error) {
       console.error(error);
       showToast("Error syncing planet in Supabase", "error");
     } else {
-      showToast(`Planet '${sys.name}' synced successfully`, "success");
+      showToast(`Planet '${planet.name}' synced successfully`, "success");
     }
   } else {
-    showToast(`Planet '${sys.name}' saved locally`, "success");
+    showToast(`Planet '${planet.name}' saved locally`, "success");
   }
 }
 
@@ -352,12 +395,38 @@ async function dbDeleteSystem(sysId) {
   systems = systems.filter(s => s.id !== sysId);
   // Delete system's connections
   connections = connections.filter(c => c.from_system_id !== sysId && c.to_system_id !== sysId);
+  // Delete system's planets
+  planets = planets.filter(p => p.systemId !== sysId);
 
   calculateBounds();
   saveLocalBackup();
 
   if (isDbConnected) {
     const { error } = await supabaseClient.from("systems").delete().eq("id", sysId);
+    if (error) {
+      console.error(error);
+      showToast("Error deleting system in Supabase", "error");
+    } else {
+      showToast("System deleted from database", "success");
+    }
+  } else {
+    showToast("System deleted locally", "success");
+  }
+
+  renderMap();
+  populateDropdowns();
+  runSearch();
+  document.getElementById("details-panel").style.display = "none";
+}
+
+async function dbDeletePlanet(planetId) {
+  // Delete planet
+  planets = planets.filter(p => p.id !== planetId);
+
+  saveLocalBackup();
+
+  if (isDbConnected) {
+    const { error } = await supabaseClient.from("planets").delete().eq("id", planetId);
     if (error) {
       console.error(error);
       showToast("Error deleting planet in Supabase", "error");
@@ -367,16 +436,12 @@ async function dbDeleteSystem(sysId) {
   } else {
     showToast("Planet deleted locally", "success");
   }
-
-  renderMap();
-  populateDropdowns();
-  runSearch();
-  document.getElementById("details-panel").style.display = "none";
 }
 
 async function dbWipe() {
   sectors = [];
   systems = [];
+  planets = [];
   connections = [];
   bounds = { minX: 0, minY: 0, maxX: 2000, maxY: 2000 };
 
@@ -385,6 +450,7 @@ async function dbWipe() {
   if (isDbConnected) {
     try {
       await supabaseClient.from("connections").delete().neq("id", 0);
+      await supabaseClient.from("planets").delete().neq("id", "");
       await supabaseClient.from("systems").delete().neq("id", "");
       await supabaseClient.from("sectors").delete().neq("id", "");
       showToast("Supabase Database Cleaned", "success");
@@ -423,6 +489,9 @@ function initMapEvents() {
   const svg = document.getElementById("map-viewport");
   const transformGroup = document.getElementById("map-transform-group");
 
+  let dragStartClientX = 0;
+  let dragStartClientY = 0;
+
   // Drag-to-Pan Handlers
   svg.addEventListener("mousedown", (e) => {
     // Avoid pan when clicking interactive elements (stars) or in Place Mode
@@ -431,6 +500,8 @@ function initMapEvents() {
     isPanning = true;
     startX = e.clientX - translateX;
     startY = e.clientY - translateY;
+    dragStartClientX = e.clientX;
+    dragStartClientY = e.clientY;
     svg.style.cursor = "grabbing";
   });
 
@@ -445,6 +516,26 @@ function initMapEvents() {
     if (isPanning) {
       isPanning = false;
       svg.style.cursor = "grab";
+    }
+  });
+
+  // Click Handler for sector pinning
+  svg.addEventListener("click", (e) => {
+    const dragDistance = Math.hypot(e.clientX - dragStartClientX, e.clientY - dragStartClientY);
+    if (dragDistance > 5) return;
+
+    if (isSectorPinMode && isAdmin) {
+      const rect = svg.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+
+      const mapX = (clientX - translateX) / scale;
+      const mapY = (clientY - translateY) / scale;
+
+      tempSectorPoints.push([parseFloat(mapX.toFixed(1)), parseFloat(mapY.toFixed(1))]);
+      document.getElementById("sector-polygon-input").value = JSON.stringify(tempSectorPoints);
+      
+      renderDraftSector();
     }
   });
 
@@ -716,15 +807,6 @@ function renderStars() {
     g.setAttribute("id", `node-${sys.id}`);
     g.dataset.id = sys.id;
 
-    // Outer Pulsing Glow Circle
-    const glowCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    glowCircle.setAttribute("cx", sys.x);
-    glowCircle.setAttribute("cy", sys.y);
-    glowCircle.setAttribute("r", starSize * 1.5);
-    glowCircle.setAttribute("fill", sysColor);
-    glowCircle.setAttribute("class", "glow");
-    g.appendChild(glowCircle);
-
     // Main Solid Circle
     const mainCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     mainCircle.setAttribute("cx", sys.x);
@@ -785,19 +867,60 @@ function selectSystem(sysId) {
   starBadge.textContent = sys.starType.replace("Star", " Star");
   starBadge.className = `badge badge-${getStarColorClass(sys.starColor)}`;
 
+  // Populate Planets list
+  const planetSelect = document.getElementById("detail-planet-select");
+  const noPlanetsMsg = document.getElementById("no-planets-msg");
+  const subpanel = document.getElementById("planet-details-subpanel");
+  
+  planetSelect.innerHTML = "";
+  
+  const sysPlanets = planets.filter(p => p.systemId === sysId);
+  if (sysPlanets.length > 0) {
+    noPlanetsMsg.style.display = "none";
+    sysPlanets.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name;
+      planetSelect.appendChild(opt);
+    });
+    // Select first planet by default
+    selectPlanetInDetails(sysPlanets[0].id);
+  } else {
+    noPlanetsMsg.style.display = "block";
+    if (subpanel) subpanel.style.display = "none";
+    selectedPlanetId = null;
+  }
+
+  // Center on viewport
+  flyToSystem(sys.x, sys.y);
+}
+
+window.selectPlanetInDetails = function(planetId) {
+  selectedPlanetId = planetId;
+  const planet = planets.find(p => p.id === planetId);
+  const subpanel = document.getElementById("planet-details-subpanel");
+  
+  if (!planet) {
+    if (subpanel) subpanel.style.display = "none";
+    return;
+  }
+
+  if (subpanel) subpanel.style.display = "block";
+  document.getElementById("detail-planet-designation").textContent = planet.designation || "NO DESIGNATION";
+
   // Resources List
-  const resourcesList = document.getElementById("detail-resources-list");
-  const noResourcesMsg = document.getElementById("no-resources-msg");
+  const resourcesList = document.getElementById("detail-planet-resources-list");
+  const noResourcesMsg = document.getElementById("planet-no-resources-msg");
   resourcesList.innerHTML = "";
 
-  if (sys.resources && sys.resources.length > 0) {
+  if (planet.resources && planet.resources.length > 0) {
     noResourcesMsg.style.display = "none";
-    sys.resources.forEach(r => {
+    planet.resources.forEach(r => {
       const chip = document.createElement("span");
       chip.className = "chip";
       chip.innerHTML = `
         ${r} 
-        <button type="button" class="admin-only" onclick="removeResource('${sys.id}', '${r}')">✕</button>
+        <button type="button" class="admin-only" onclick="removePlanetResource('${planet.id}', '${r}')">✕</button>
       `;
       resourcesList.appendChild(chip);
     });
@@ -806,18 +929,18 @@ function selectSystem(sysId) {
   }
 
   // Deposits List
-  const depositsList = document.getElementById("detail-deposits-list");
-  const noDepositsMsg = document.getElementById("no-deposits-msg");
+  const depositsList = document.getElementById("detail-planet-deposits-list");
+  const noDepositsMsg = document.getElementById("planet-no-deposits-msg");
   depositsList.innerHTML = "";
 
-  if (sys.deposits && sys.deposits.length > 0) {
+  if (planet.deposits && planet.deposits.length > 0) {
     noDepositsMsg.style.display = "none";
-    sys.deposits.forEach(d => {
+    planet.deposits.forEach(d => {
       const chip = document.createElement("span");
       chip.className = "chip";
       chip.innerHTML = `
         <code>${d}</code>
-        <button type="button" class="admin-only" onclick="removeDeposit('${sys.id}', '${d}')">✕</button>
+        <button type="button" class="admin-only" onclick="removePlanetDeposit('${planet.id}', '${d}')">✕</button>
       `;
       depositsList.appendChild(chip);
     });
@@ -826,11 +949,11 @@ function selectSystem(sysId) {
   }
 
   // Space Stations List
-  const stationsList = document.getElementById("detail-stations-list");
+  const stationsList = document.getElementById("detail-planet-stations-list");
   stationsList.innerHTML = "";
 
-  if (sys.stations && sys.stations.length > 0) {
-    sys.stations.forEach((st, idx) => {
+  if (planet.stations && planet.stations.length > 0) {
+    planet.stations.forEach((st, idx) => {
       const item = document.createElement("div");
       item.style.background = "rgba(0,0,0,0.2)";
       item.style.padding = "10px";
@@ -842,7 +965,7 @@ function selectSystem(sysId) {
       item.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
           <span>🛰️ ${st.name} <span style="font-size:0.75rem; color:var(--text-secondary)">(${st.owner || 'Independent'})</span></span>
-          <button type="button" class="admin-only" style="background:transparent; border:none; color:var(--accent-red); cursor:pointer;" onclick="removeStation('${sys.id}', ${idx})">✕</button>
+          <button type="button" class="admin-only" style="background:transparent; border:none; color:var(--accent-red); cursor:pointer;" onclick="removePlanetStation('${planet.id}', ${idx})">✕</button>
         </div>
         <div style="margin-top: 6px;">${facilitiesStr}</div>
       `;
@@ -851,23 +974,57 @@ function selectSystem(sysId) {
   } else {
     stationsList.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">No orbital stations recorded.</div>`;
   }
+};
 
-  // Center on viewport
-  flyToSystem(sys.x, sys.y);
-}
+window.removePlanetResource = async function (planetId, resName) {
+  if (!isAdmin) return;
+  const planet = planets.find(p => p.id === planetId);
+  if (planet) {
+    planet.resources = planet.resources.filter(r => r !== resName);
+    await dbSavePlanet(planet);
+    selectPlanetInDetails(planetId);
+    populateDropdowns();
+  }
+};
+
+window.removePlanetDeposit = async function (planetId, depName) {
+  if (!isAdmin) return;
+  const planet = planets.find(p => p.id === planetId);
+  if (planet) {
+    planet.deposits = planet.deposits.filter(d => d !== depName);
+    await dbSavePlanet(planet);
+    selectPlanetInDetails(planetId);
+  }
+};
+
+window.removePlanetStation = async function (planetId, index) {
+  if (!isAdmin) return;
+  const planet = planets.find(p => p.id === planetId);
+  if (planet && planet.stations) {
+    planet.stations.splice(index, 1);
+    await dbSavePlanet(planet);
+    selectPlanetInDetails(planetId);
+  }
+};
 
 function highlightSelectedNode(sysId) {
   // Remove visual highlights from others
   const nodes = document.querySelectorAll(".system-node");
   nodes.forEach(n => {
-    n.querySelector("circle:nth-child(2)").setAttribute("stroke", "#ffffff");
-    n.querySelector("circle:nth-child(2)").setAttribute("stroke-width", "1.5");
+    const c = n.querySelector("circle");
+    if (c) {
+      c.setAttribute("stroke", "#ffffff");
+      c.setAttribute("stroke-width", "1.5");
+    }
   });
 
   const selectedNode = document.getElementById(`node-${sysId}`);
   if (selectedNode) {
-    selectedNode.querySelector("circle:nth-child(2)").setAttribute("stroke", "var(--accent-blue)");
-    selectedNode.querySelector("circle:nth-child(2)").setAttribute("stroke-width", "3.0");
+    const c = selectedNode.querySelector("circle");
+    if (c) {
+      c.setAttribute("stroke", "var(--accent-blue)");
+      c.setAttribute("stroke-width", "3.0");
+    }
   }
 }
 
@@ -891,7 +1048,8 @@ function runSearch() {
     const nameMatch = sys.name.toLowerCase().includes(query) ||
       (sys.designation && sys.designation.toLowerCase().includes(query));
 
-    const resourceMatch = !selectedResource || (sys.resources && sys.resources.includes(selectedResource));
+    const sysPlanets = planets.filter(p => p.systemId === sys.id);
+    const resourceMatch = !selectedResource || sysPlanets.some(p => p.resources && p.resources.includes(selectedResource));
 
     return nameMatch && resourceMatch;
   });
@@ -1178,6 +1336,7 @@ function initForms() {
 
       await dbSaveSector(newSector);
       e.target.reset();
+      disableSectorPinMode();
 
       populateDropdowns();
       renderMap();
@@ -1211,11 +1370,7 @@ function initForms() {
       starColor,
       starType,
       color: "#ffffff", // Sector color override is handled dynamically
-      index: systems.length,
-      planetCount: 1,
-      resources: [],
-      deposits: [],
-      stations: []
+      index: systems.length
     };
 
     await dbSaveSystem(newSys);
@@ -1224,6 +1379,32 @@ function initForms() {
     populateDropdowns();
     renderMap();
     runSearch();
+  });
+
+  // Creator: Save Planet Form Submission
+  document.getElementById("create-planet-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!isAdmin) return;
+
+    const id = document.getElementById("planet-id-input").value.trim();
+    const name = document.getElementById("planet-name-input").value.trim();
+    const designation = document.getElementById("planet-designation-input").value.trim();
+    const systemId = document.getElementById("planet-system-select").value;
+
+    const newPlanet = {
+      id,
+      name,
+      designation,
+      systemId,
+      resources: [],
+      deposits: [],
+      stations: []
+    };
+
+    await dbSavePlanet(newPlanet);
+    e.target.reset();
+
+    populateDropdowns();
   });
 
   document.getElementById("create-connection-form").addEventListener("submit", async (e) => {
@@ -1246,85 +1427,24 @@ function initForms() {
     renderMap();
   });
 
+  // Creator: Pin/Drawing buttons listeners
+  document.getElementById("activate-sector-pin-btn").addEventListener("click", () => {
+    if (isSectorPinMode) {
+      disableSectorPinMode();
+    } else {
+      enableSectorPinMode();
+    }
+  });
+
+  document.getElementById("undo-sector-pin-btn").addEventListener("click", undoSectorPoint);
+  document.getElementById("clear-sector-pin-btn").addEventListener("click", clearSectorPoints);
+
   // Wipe Database click handler
   document.getElementById("clear-database-btn").addEventListener("click", () => {
     if (!isAdmin) return;
     if (confirm("🚨 WARNING: Are you sure you want to delete ALL custom sectors, systems, and FTL pathways? This action cannot be undone.")) {
       dbWipe();
     }
-  });
-
-  // Resource/Deposit Editing
-  document.getElementById("add-resource-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!selectedSystemId || !isAdmin) return;
-
-    const sys = systems.find(s => s.id === selectedSystemId);
-    if (!sys) return;
-
-    const resName = document.getElementById("new-resource-input").value.trim();
-    if (resName && !sys.resources.includes(resName)) {
-      sys.resources.push(resName);
-      await dbSaveSystem(sys);
-      selectSystem(selectedSystemId); // refresh details card
-      populateDropdowns(); // update search filter
-    }
-    e.target.reset();
-  });
-
-  document.getElementById("add-deposit-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!selectedSystemId || !isAdmin) return;
-
-    const sys = systems.find(s => s.id === selectedSystemId);
-    if (!sys) return;
-
-    const depName = document.getElementById("new-deposit-input").value.trim();
-    if (depName && !sys.deposits.includes(depName)) {
-      sys.deposits.push(depName);
-      await dbSaveSystem(sys);
-      selectSystem(selectedSystemId);
-    }
-    e.target.reset();
-  });
-
-  // Station addition Form
-  document.getElementById("add-station-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!selectedSystemId || !isAdmin) return;
-
-    const sys = systems.find(s => s.id === selectedSystemId);
-    if (!sys) return;
-
-    const name = document.getElementById("new-station-name").value.trim();
-    const owner = document.getElementById("new-station-owner").value.trim() || "Independent";
-
-    const checkboxes = document.querySelectorAll(".facility-checkbox");
-    const facilities = [];
-    checkboxes.forEach(cb => {
-      if (cb.checked) {
-        facilities.push({ type: cb.value });
-      }
-    });
-
-    const newStation = {
-      id: `station-${Date.now()}`,
-      name,
-      owner,
-      building: "SpaceStation0",
-      iconRef: "/icons/SpaceStation0.webp",
-      facilities
-    };
-
-    if (!sys.stations) sys.stations = [];
-    sys.stations.push(newStation);
-
-    await dbSaveSystem(sys);
-
-    // Reset inputs
-    e.target.reset();
-    checkboxes.forEach(cb => cb.checked = false);
-    selectSystem(selectedSystemId);
   });
 
   // Delete system click handler
@@ -1381,7 +1501,91 @@ window.removeStation = async function (sysId, index) {
 
 function disablePlaceMode() {
   isPlaceMode = false;
+  if (!isSectorPinMode) {
+    document.getElementById("place-banner").classList.remove("active");
+  }
+}
+
+function enableSectorPinMode() {
+  isSectorPinMode = true;
+  isPlaceMode = false;
   document.getElementById("place-banner").classList.remove("active");
+  
+  const banner = document.getElementById("place-banner");
+  banner.querySelector("span").innerHTML = `<strong>Sector Pin Mode Active:</strong> Click on the map to add boundary points.`;
+  banner.classList.add("active");
+
+  document.getElementById("undo-sector-pin-btn").style.display = "inline-flex";
+  document.getElementById("clear-sector-pin-btn").style.display = "inline-flex";
+  document.getElementById("activate-sector-pin-btn").textContent = "Stop Pinning";
+}
+
+function disableSectorPinMode() {
+  isSectorPinMode = false;
+  document.getElementById("place-banner").classList.remove("active");
+  document.getElementById("undo-sector-pin-btn").style.display = "none";
+  document.getElementById("clear-sector-pin-btn").style.display = "none";
+  document.getElementById("activate-sector-pin-btn").textContent = "📍 Pin Points on Map";
+  
+  const draftLayer = document.getElementById("draft-sector-layer");
+  if (draftLayer) draftLayer.innerHTML = "";
+}
+
+function undoSectorPoint() {
+  if (tempSectorPoints.length > 0) {
+    tempSectorPoints.pop();
+    document.getElementById("sector-polygon-input").value = tempSectorPoints.length > 0 ? JSON.stringify(tempSectorPoints) : "";
+    renderDraftSector();
+  }
+}
+
+function clearSectorPoints() {
+  tempSectorPoints = [];
+  document.getElementById("sector-polygon-input").value = "";
+  renderDraftSector();
+}
+
+function renderDraftSector() {
+  const draftLayer = document.getElementById("draft-sector-layer");
+  if (!draftLayer) return;
+  draftLayer.innerHTML = "";
+
+  if (tempSectorPoints.length === 0) return;
+
+  const color = document.getElementById("sector-color-input").value || "#a855f7";
+
+  if (tempSectorPoints.length >= 2) {
+    const pointsStr = tempSectorPoints.map(p => p.join(",")).join(" ");
+    const elementTag = tempSectorPoints.length >= 3 ? "polygon" : "polyline";
+    const shape = document.createElementNS("http://www.w3.org/2000/svg", elementTag);
+    shape.setAttribute("points", pointsStr);
+    shape.setAttribute("stroke", color);
+    shape.setAttribute("stroke-width", "2.0");
+    shape.setAttribute("fill", color);
+    shape.setAttribute("fill-opacity", "0.15");
+    shape.setAttribute("stroke-dasharray", "4 4");
+    draftLayer.appendChild(shape);
+  }
+
+  tempSectorPoints.forEach((p, idx) => {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", p[0]);
+    circle.setAttribute("cy", p[1]);
+    circle.setAttribute("r", "5");
+    circle.setAttribute("fill", color);
+    circle.setAttribute("stroke", "#ffffff");
+    circle.setAttribute("stroke-width", "1.5");
+    draftLayer.appendChild(circle);
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", p[0] + 8);
+    text.setAttribute("y", p[1] + 4);
+    text.setAttribute("fill", "#ffffff");
+    text.setAttribute("font-size", "10px");
+    text.setAttribute("font-family", "monospace");
+    text.textContent = idx + 1;
+    draftLayer.appendChild(text);
+  });
 }
 
 function populateDropdowns() {
@@ -1421,14 +1625,23 @@ function populateDropdowns() {
   // 4. Resources filter dropdown
   const resourceFilter = document.getElementById("resource-filter");
   const uniqueResources = new Set();
-  systems.forEach(s => {
-    if (s.resources) s.resources.forEach(r => uniqueResources.add(r));
+  planets.forEach(p => {
+    if (p.resources) p.resources.forEach(r => uniqueResources.add(r));
   });
 
   resourceFilter.innerHTML = '<option value="">All Resources</option>';
   [...uniqueResources].sort().forEach(r => {
     resourceFilter.innerHTML += `<option value="${r}">${r}</option>`;
   });
+
+  // 5. Planet system assignment dropdown
+  const planetSystemSelect = document.getElementById("planet-system-select");
+  if (planetSystemSelect) {
+    planetSystemSelect.innerHTML = '<option value="">Select System...</option>';
+    sorted.forEach(s => {
+      planetSystemSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    });
+  }
 }
 
 // JSON Portability (Export)
@@ -1437,6 +1650,7 @@ function exportGalaxyJson() {
     bounds,
     sectors,
     systems,
+    planets,
     // Format connections into structural object to match sample template
     connections: {}
   };
@@ -1486,6 +1700,13 @@ async function importGalaxyJson(e) {
       // 2. Upload Systems
       for (const sys of data.systems) {
         await dbSaveSystem(sys);
+      }
+
+      // 2b. Upload Planets
+      if (data.planets) {
+        for (const planet of data.planets) {
+          await dbSavePlanet(planet);
+        }
       }
 
       // 3. Upload Connections
@@ -1600,6 +1821,112 @@ function initSettings() {
   // Search filtering event hooks
   const search_input_el = document.getElementById("search-input"); if (search_input_el) search_input_el.addEventListener("input", runSearch);
   const resource_filter_el = document.getElementById("resource-filter"); if (resource_filter_el) resource_filter_el.addEventListener("change", runSearch);
+
+  // Planet selector change listener
+  const detailPlanetSelect = document.getElementById("detail-planet-select");
+  if (detailPlanetSelect) {
+    detailPlanetSelect.addEventListener("change", (e) => {
+      selectPlanetInDetails(e.target.value);
+    });
+  }
+
+  // Resource Form
+  const addPlanetResForm = document.getElementById("add-planet-resource-form");
+  if (addPlanetResForm) {
+    addPlanetResForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!selectedPlanetId || !isAdmin) return;
+
+      const planet = planets.find(p => p.id === selectedPlanetId);
+      if (!planet) return;
+
+      const resName = document.getElementById("new-planet-resource-input").value.trim();
+      if (resName && !planet.resources.includes(resName)) {
+        planet.resources.push(resName);
+        await dbSavePlanet(planet);
+        selectPlanetInDetails(selectedPlanetId);
+        populateDropdowns();
+      }
+      e.target.reset();
+    });
+  }
+
+  // Deposit Form
+  const addPlanetDepForm = document.getElementById("add-planet-deposit-form");
+  if (addPlanetDepForm) {
+    addPlanetDepForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!selectedPlanetId || !isAdmin) return;
+
+      const planet = planets.find(p => p.id === selectedPlanetId);
+      if (!planet) return;
+
+      const depName = document.getElementById("new-planet-deposit-input").value.trim();
+      if (depName && !planet.deposits.includes(depName)) {
+        planet.deposits.push(depName);
+        await dbSavePlanet(planet);
+        selectPlanetInDetails(selectedPlanetId);
+      }
+      e.target.reset();
+    });
+  }
+
+  // Station Form
+  const addPlanetStationForm = document.getElementById("add-planet-station-form");
+  if (addPlanetStationForm) {
+    addPlanetStationForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!selectedPlanetId || !isAdmin) return;
+
+      const planet = planets.find(p => p.id === selectedPlanetId);
+      if (!planet) return;
+
+      const name = document.getElementById("new-planet-station-name").value.trim();
+      const owner = document.getElementById("new-planet-station-owner").value.trim() || "Independent";
+
+      const checkboxes = document.querySelectorAll(".planet-facility-checkbox");
+      const facilities = [];
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          facilities.push({ type: cb.value });
+        }
+      });
+
+      const newStation = {
+        id: `station-${Date.now()}`,
+        name,
+        owner,
+        building: "SpaceStation0",
+        iconRef: "/icons/SpaceStation0.webp",
+        facilities
+      };
+
+      if (!planet.stations) planet.stations = [];
+      planet.stations.push(newStation);
+
+      await dbSavePlanet(planet);
+
+      e.target.reset();
+      checkboxes.forEach(cb => cb.checked = false);
+      selectPlanetInDetails(selectedPlanetId);
+    });
+  }
+
+  // Delete Planet Button
+  const deletePlanetBtn = document.getElementById("delete-planet-btn");
+  if (deletePlanetBtn) {
+    deletePlanetBtn.addEventListener("click", async () => {
+      if (selectedPlanetId && isAdmin) {
+        if (confirm(`Are you sure you want to delete planet ${selectedPlanetId}?`)) {
+          const sysId = selectedSystemId;
+          await dbDeletePlanet(selectedPlanetId);
+          if (sysId) {
+            selectSystem(sysId);
+          }
+        }
+      }
+    });
+  }
 
 }
 
@@ -1741,20 +2068,22 @@ async function importParsedWorkerLayout(result) {
         sectorId: defaultSector.id,
         color: "#ffffff",
         x: tp.center.x,
-        y: tp.center.y,
-        planetCount: 1,
+        y: tp.center.y
+      };
+
+      await dbSaveSystem(newSys);
+
+      // Create a default planet for this system
+      const newPlanet = {
+        id: `planet-scanned-${tp.slot}`,
+        name: `Planet ${tp.slot}`,
+        systemId: newSys.id,
+        designation: `PLANET-SEED-${result.seed}-${tp.slot}`,
         resources: [],
         deposits: [],
         stations: []
       };
-
-      // Auto-extract resource evidence hits if matching
-      const matchingEvidence = Object.entries(result.resourceEvidence || {}).find(([k, v]) => {
-        // check if coordinates or indices match
-        return false; // stubbed
-      });
-
-      await dbSaveSystem(newSys);
+      await dbSavePlanet(newPlanet);
     }
 
     calculateBounds();
