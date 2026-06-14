@@ -119,8 +119,36 @@ USING (true)
 WITH CHECK (true);
 
 
--- 11. CREATE INDEXES FOR OPTIMAL SEARCHING
+-- 11. CREATE TABLE: stations (Space Stations)
+CREATE TABLE IF NOT EXISTS stations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    system_id TEXT NOT NULL REFERENCES systems(id) ON DELETE CASCADE,
+    owner TEXT NOT NULL DEFAULT 'Independent',
+    facilities JSONB DEFAULT '[]'::jsonb, -- Array of facilities
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- 12. ENABLE ROW LEVEL SECURITY & SET RLS POLICIES FOR stations
+ALTER TABLE stations ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Allow anyone to read stations
+CREATE POLICY "Allow public read access to stations"
+ON stations FOR SELECT
+USING (true);
+
+-- Policy: Allow only authenticated users to write stations
+CREATE POLICY "Allow write access to authenticated users on stations"
+ON stations FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+
+-- 13. CREATE INDEXES FOR OPTIMAL SEARCHING
 CREATE INDEX IF NOT EXISTS idx_systems_sector_id ON systems(sector_id);
 CREATE INDEX IF NOT EXISTS idx_systems_coordinates ON systems(x, y);
 CREATE INDEX IF NOT EXISTS idx_planets_system_id ON planets(system_id);
 CREATE INDEX IF NOT EXISTS idx_connections_from_to ON connections(from_system_id, to_system_id);
+CREATE INDEX IF NOT EXISTS idx_stations_system_id ON stations(system_id);
+

@@ -71,15 +71,19 @@ body {
 /* Layout Grid */
 #app-layout {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 380px 1fr 0px;
   grid-template-rows: 64px 1fr;
   height: 100vh;
   width: 100vw;
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#app-layout.details-open {
+  grid-template-columns: 380px 1fr 380px;
 }
 
 /* Header Container */
 header {
-  grid-column: 1 / 3;
+  grid-column: 1 / 4;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -288,12 +292,18 @@ main:active {
 }
 
 #details-panel {
-  bottom: 24px;
-  right: 24px;
-  width: 380px;
-  max-height: 400px;
-  overflow-y: auto;
+  grid-column: 3;
+  grid-row: 2;
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  border-left: 1px solid var(--border-light);
   display: none;
+  flex-direction: column;
+  z-index: 40;
+  overflow-y: auto;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.25);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 #map-controls {
@@ -523,11 +533,19 @@ input:focus, select:focus, textarea:focus {
 }
 
 .admin-only {
-  display: none;
+  display: none !important;
 }
 
 body.admin-mode .admin-only {
-  display: block;
+  display: block !important;
+}
+
+body.admin-mode button.admin-only {
+  display: inline-block !important;
+}
+
+body.admin-mode form.admin-only {
+  display: flex !important;
 }
 
 /* Resource List Editing Chips */

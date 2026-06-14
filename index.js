@@ -30,7 +30,8 @@ let isDbConnected = false;
 // Application Datasets
 let sectors = [];
 let systems = [];
-let planets = []; // Format: [ { id, name, systemId, designation, resources: [], deposits: [], stations: [] } ]
+let planets = []; // Format: [ { id, name, systemId, designation, resources: [], deposits: [] } ]
+let stations = []; // Format: [ { id, name, systemId, owner, facilities: [] } ]
 let connections = []; // Format: [ { from_system_id, to_system_id, cost }, ... ]
 let bounds = { minX: 0, minY: 0, maxX: 2000, maxY: 2000 };
 
@@ -48,6 +49,7 @@ let tempSectorPoints = [];
 let isAdmin = false;
 let selectedSystemId = null;
 let selectedPlanetId = null;
+let selectedStationId = null;
 
 // Routing State
 let routeStartSystemId = null;
@@ -179,8 +181,18 @@ async function loadData() {
         systemId: p.system_id,
         designation: p.designation,
         resources: p.resources || [],
-        deposits: p.deposits || [],
-        stations: typeof p.stations === 'string' ? JSON.parse(p.stations) : (p.stations || [])
+        deposits: p.deposits || []
+      }));
+
+      // 2c. Load Stations
+      const { data: stationData, error: stErr } = await supabaseClient.from("stations").select("*");
+      if (stErr) throw stErr;
+      stations = stationData.map(st => ({
+        id: st.id,
+        name: st.name,
+        systemId: st.system_id,
+        owner: st.owner || 'Independent',
+        facilities: typeof st.facilities === 'string' ? JSON.parse(st.facilities) : (st.facilities || [])
       }));
 
       // 3. Load Connections
@@ -211,12 +223,14 @@ function loadDataFromLocalStorage() {
   const localSystems = safeGetItem("spacecraft_systems");
   const localConns = safeGetItem("spacecraft_connections");
   const localPlanets = safeGetItem("spacecraft_planets");
+  const localStations = safeGetItem("spacecraft_stations");
 
   if (localSectors && localSystems && localConns) {
     sectors = JSON.parse(localSectors);
     systems = JSON.parse(localSystems);
     connections = JSON.parse(localConns);
     planets = localPlanets ? JSON.parse(localPlanets) : [];
+    stations = localStations ? JSON.parse(localStations) : [];
     calculateBounds();
   }
 
@@ -231,6 +245,7 @@ function saveLocalBackup() {
     safeSetItem("spacecraft_systems", JSON.stringify(systems));
     safeSetItem("spacecraft_connections", JSON.stringify(connections));
     safeSetItem("spacecraft_planets", JSON.stringify(planets));
+    safeSetItem("spacecraft_stations", JSON.stringify(stations));
   }
 }
 
@@ -344,8 +359,7 @@ async function dbSavePlanet(planet) {
       system_id: planet.systemId,
       designation: planet.designation,
       resources: planet.resources,
-      deposits: planet.deposits,
-      stations: JSON.stringify(planet.stations)
+      deposits: planet.deposits
     });
     if (error) {
       console.error(error);
@@ -355,6 +369,52 @@ async function dbSavePlanet(planet) {
     }
   } else {
     showToast(`Planet '${planet.name}' saved locally`, "success");
+  }
+}
+
+async function dbSaveStation(station) {
+  const index = stations.findIndex(s => s.id === station.id);
+  if (index !== -1) {
+    stations[index] = station;
+  } else {
+    stations.push(station);
+  }
+
+  saveLocalBackup();
+
+  if (isDbConnected) {
+    const { error } = await supabaseClient.from("stations").upsert({
+      id: station.id,
+      name: station.name,
+      system_id: station.systemId,
+      owner: station.owner,
+      facilities: JSON.stringify(station.facilities)
+    });
+    if (error) {
+      console.error(error);
+      showToast("Error syncing space station in Supabase", "error");
+    } else {
+      showToast(`Space Station '${station.name}' synced successfully`, "success");
+    }
+  } else {
+    showToast(`Space Station '${station.name}' saved locally`, "success");
+  }
+}
+
+async function dbDeleteStation(stationId) {
+  stations = stations.filter(s => s.id !== stationId);
+  saveLocalBackup();
+
+  if (isDbConnected) {
+    const { error } = await supabaseClient.from("stations").delete().eq("id", stationId);
+    if (error) {
+      console.error(error);
+      showToast("Error deleting space station in Supabase", "error");
+    } else {
+      showToast("Space station deleted from database", "success");
+    }
+  } else {
+    showToast("Space station deleted locally", "success");
   }
 }
 
@@ -397,6 +457,8 @@ async function dbDeleteSystem(sysId) {
   connections = connections.filter(c => c.from_system_id !== sysId && c.to_system_id !== sysId);
   // Delete system's planets
   planets = planets.filter(p => p.systemId !== sysId);
+  // Delete system's stations
+  stations = stations.filter(s => s.systemId !== sysId);
 
   calculateBounds();
   saveLocalBackup();
@@ -417,6 +479,7 @@ async function dbDeleteSystem(sysId) {
   populateDropdowns();
   runSearch();
   document.getElementById("details-panel").style.display = "none";
+  document.getElementById("app-layout").classList.remove("details-open");
 }
 
 async function dbDeletePlanet(planetId) {
@@ -442,6 +505,7 @@ async function dbWipe() {
   sectors = [];
   systems = [];
   planets = [];
+  stations = [];
   connections = [];
   bounds = { minX: 0, minY: 0, maxX: 2000, maxY: 2000 };
 
@@ -451,6 +515,7 @@ async function dbWipe() {
     try {
       await supabaseClient.from("connections").delete().neq("id", 0);
       await supabaseClient.from("planets").delete().neq("id", "");
+      await supabaseClient.from("stations").delete().neq("id", "");
       await supabaseClient.from("systems").delete().neq("id", "");
       await supabaseClient.from("sectors").delete().neq("id", "");
       showToast("Supabase Database Cleaned", "success");
@@ -852,9 +917,10 @@ function selectSystem(sysId) {
   // Highlight node
   highlightSelectedNode(sysId);
 
-  // Show Details Floating Card
+  // Show Details Sidebar Panel
   const panel = document.getElementById("details-panel");
-  panel.style.display = "block";
+  panel.style.display = "flex";
+  document.getElementById("app-layout").classList.add("details-open");
 
   document.getElementById("detail-system-name").textContent = sys.name;
   document.getElementById("detail-system-designation").textContent = sys.designation || "NO DESIGNATION";
@@ -891,6 +957,30 @@ function selectSystem(sysId) {
     selectedPlanetId = null;
   }
 
+  // Populate Space Stations list
+  const stationSelect = document.getElementById("detail-station-select");
+  const noStationsMsg = document.getElementById("no-stations-msg");
+  const stationSubpanel = document.getElementById("station-details-subpanel");
+
+  stationSelect.innerHTML = "";
+
+  const sysStations = stations.filter(st => st.systemId === sysId);
+  if (sysStations.length > 0) {
+    noStationsMsg.style.display = "none";
+    sysStations.forEach(st => {
+      const opt = document.createElement("option");
+      opt.value = st.id;
+      opt.textContent = st.name;
+      stationSelect.appendChild(opt);
+    });
+    // Select first station by default
+    selectStationInDetails(sysStations[0].id);
+  } else {
+    noStationsMsg.style.display = "block";
+    if (stationSubpanel) stationSubpanel.style.display = "none";
+    selectedStationId = null;
+  }
+
   // Center on viewport
   flyToSystem(sys.x, sys.y);
 }
@@ -918,9 +1008,10 @@ window.selectPlanetInDetails = function(planetId) {
     planet.resources.forEach(r => {
       const chip = document.createElement("span");
       chip.className = "chip";
+      const removeBtn = isAdmin ? `<button type="button" class="admin-only" onclick="removePlanetResource('${planet.id}', '${r}')">✕</button>` : '';
       chip.innerHTML = `
         ${r} 
-        <button type="button" class="admin-only" onclick="removePlanetResource('${planet.id}', '${r}')">✕</button>
+        ${removeBtn}
       `;
       resourcesList.appendChild(chip);
     });
@@ -938,41 +1029,48 @@ window.selectPlanetInDetails = function(planetId) {
     planet.deposits.forEach(d => {
       const chip = document.createElement("span");
       chip.className = "chip";
+      const removeBtn = isAdmin ? `<button type="button" class="admin-only" onclick="removePlanetDeposit('${planet.id}', '${d}')">✕</button>` : '';
       chip.innerHTML = `
         <code>${d}</code>
-        <button type="button" class="admin-only" onclick="removePlanetDeposit('${planet.id}', '${d}')">✕</button>
+        ${removeBtn}
       `;
       depositsList.appendChild(chip);
     });
   } else {
     noDepositsMsg.style.display = "block";
   }
+};
 
-  // Space Stations List
-  const stationsList = document.getElementById("detail-planet-stations-list");
-  stationsList.innerHTML = "";
+window.selectStationInDetails = function(stationId) {
+  selectedStationId = stationId;
+  const station = stations.find(s => s.id === stationId);
+  const subpanel = document.getElementById("station-details-subpanel");
 
-  if (planet.stations && planet.stations.length > 0) {
-    planet.stations.forEach((st, idx) => {
-      const item = document.createElement("div");
-      item.style.background = "rgba(0,0,0,0.2)";
-      item.style.padding = "10px";
-      item.style.borderRadius = "6px";
-      item.style.border = "1px solid var(--border-light)";
+  if (!station) {
+    if (subpanel) subpanel.style.display = "none";
+    return;
+  }
 
-      const facilitiesStr = st.facilities.map(f => `<span class="badge badge-blue" style="font-size:0.6rem; margin: 2px;">${f.type}</span>`).join("");
+  if (subpanel) subpanel.style.display = "block";
+  document.getElementById("detail-station-owner").textContent = station.owner || "Independent";
 
-      item.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
-          <span>🛰️ ${st.name} <span style="font-size:0.75rem; color:var(--text-secondary)">(${st.owner || 'Independent'})</span></span>
-          <button type="button" class="admin-only" style="background:transparent; border:none; color:var(--accent-red); cursor:pointer;" onclick="removePlanetStation('${planet.id}', ${idx})">✕</button>
-        </div>
-        <div style="margin-top: 6px;">${facilitiesStr}</div>
+  // Facilities List
+  const facilitiesList = document.getElementById("detail-station-facilities-list");
+  facilitiesList.innerHTML = "";
+
+  if (station.facilities && station.facilities.length > 0) {
+    station.facilities.forEach(f => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      const removeBtn = isAdmin ? `<button type="button" class="admin-only" onclick="removeStationFacility('${station.id}', '${f.type}')">✕</button>` : '';
+      chip.innerHTML = `
+        <span class="badge badge-blue" style="font-size:0.75rem;">${f.type}</span>
+        ${removeBtn}
       `;
-      stationsList.appendChild(item);
+      facilitiesList.appendChild(chip);
     });
   } else {
-    stationsList.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">No orbital stations recorded.</div>`;
+    facilitiesList.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">No facilities recorded.</div>`;
   }
 };
 
@@ -997,13 +1095,13 @@ window.removePlanetDeposit = async function (planetId, depName) {
   }
 };
 
-window.removePlanetStation = async function (planetId, index) {
+window.removeStationFacility = async function (stationId, facilityType) {
   if (!isAdmin) return;
-  const planet = planets.find(p => p.id === planetId);
-  if (planet && planet.stations) {
-    planet.stations.splice(index, 1);
-    await dbSavePlanet(planet);
-    selectPlanetInDetails(planetId);
+  const station = stations.find(s => s.id === stationId);
+  if (station) {
+    station.facilities = station.facilities.filter(f => f.type !== facilityType);
+    await dbSaveStation(station);
+    selectStationInDetails(stationId);
   }
 };
 
@@ -1282,6 +1380,15 @@ function initForms() {
     document.getElementById("creator-tools-panel").style.display = "none";
     showToast("Logged out successfully");
 
+    // If an admin-only tab is active, switch back to Systems tab
+    const activeTab = document.querySelector(".tab-btn.active");
+    if (activeTab && (activeTab.getAttribute("data-tab") === "admin-tab" || activeTab.getAttribute("data-tab") === "settings-tab")) {
+      const systemsTabBtn = document.querySelector('.tab-btn[data-tab="search-tab"]');
+      if (systemsTabBtn) {
+        systemsTabBtn.click();
+      }
+    }
+
     if (selectedSystemId) {
       selectSystem(selectedSystemId);
     }
@@ -1397,11 +1504,34 @@ function initForms() {
       designation,
       systemId,
       resources: [],
-      deposits: [],
-      stations: []
+      deposits: []
     };
 
     await dbSavePlanet(newPlanet);
+    e.target.reset();
+
+    populateDropdowns();
+  });
+
+  // Creator: Save Space Station Form Submission
+  document.getElementById("create-station-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!isAdmin) return;
+
+    const id = document.getElementById("station-id-input").value.trim();
+    const name = document.getElementById("station-name-input").value.trim();
+    const owner = document.getElementById("station-owner-input").value.trim() || "Independent";
+    const systemId = document.getElementById("station-system-select").value;
+
+    const newStation = {
+      id,
+      name,
+      owner,
+      systemId,
+      facilities: []
+    };
+
+    await dbSaveStation(newStation);
     e.target.reset();
 
     populateDropdowns();
@@ -1467,37 +1597,7 @@ function initForms() {
   fileInput.addEventListener("change", importGalaxyJson);
 }
 
-// Global resource editing callbacks (bound to inline onclick inside chips)
-window.removeResource = async function (sysId, resName) {
-  if (!isAdmin) return;
-  const sys = systems.find(s => s.id === sysId);
-  if (sys) {
-    sys.resources = sys.resources.filter(r => r !== resName);
-    await dbSaveSystem(sys);
-    selectSystem(sysId);
-    populateDropdowns();
-  }
-};
 
-window.removeDeposit = async function (sysId, depName) {
-  if (!isAdmin) return;
-  const sys = systems.find(s => s.id === sysId);
-  if (sys) {
-    sys.deposits = sys.deposits.filter(d => d !== depName);
-    await dbSaveSystem(sys);
-    selectSystem(sysId);
-  }
-};
-
-window.removeStation = async function (sysId, index) {
-  if (!isAdmin) return;
-  const sys = systems.find(s => s.id === sysId);
-  if (sys && sys.stations) {
-    sys.stations.splice(index, 1);
-    await dbSaveSystem(sys);
-    selectSystem(sysId);
-  }
-};
 
 function disablePlaceMode() {
   isPlaceMode = false;
@@ -1642,6 +1742,15 @@ function populateDropdowns() {
       planetSystemSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
     });
   }
+
+  // 6. Station system assignment dropdown
+  const stationSystemSelect = document.getElementById("station-system-select");
+  if (stationSystemSelect) {
+    stationSystemSelect.innerHTML = '<option value="">Select System...</option>';
+    sorted.forEach(s => {
+      stationSystemSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    });
+  }
 }
 
 // JSON Portability (Export)
@@ -1651,6 +1760,7 @@ function exportGalaxyJson() {
     sectors,
     systems,
     planets,
+    stations,
     // Format connections into structural object to match sample template
     connections: {}
   };
@@ -1706,6 +1816,13 @@ async function importGalaxyJson(e) {
       if (data.planets) {
         for (const planet of data.planets) {
           await dbSavePlanet(planet);
+        }
+      }
+
+      // 2c. Upload Stations
+      if (data.stations) {
+        for (const station of data.stations) {
+          await dbSaveStation(station);
         }
       }
 
@@ -1871,44 +1988,51 @@ function initSettings() {
     });
   }
 
-  // Station Form
-  const addPlanetStationForm = document.getElementById("add-planet-station-form");
-  if (addPlanetStationForm) {
-    addPlanetStationForm.addEventListener("submit", async (e) => {
+  // Station selector change listener
+  const detailStationSelect = document.getElementById("detail-station-select");
+  if (detailStationSelect) {
+    detailStationSelect.addEventListener("change", (e) => {
+      selectStationInDetails(e.target.value);
+    });
+  }
+
+  // Facility Form
+  const addStationFacilityForm = document.getElementById("add-station-facility-form");
+  if (addStationFacilityForm) {
+    addStationFacilityForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!selectedPlanetId || !isAdmin) return;
+      if (!selectedStationId || !isAdmin) return;
 
-      const planet = planets.find(p => p.id === selectedPlanetId);
-      if (!planet) return;
+      const station = stations.find(s => s.id === selectedStationId);
+      if (!station) return;
 
-      const name = document.getElementById("new-planet-station-name").value.trim();
-      const owner = document.getElementById("new-planet-station-owner").value.trim() || "Independent";
+      const facType = document.getElementById("new-station-facility-select").value;
+      if (!station.facilities) station.facilities = [];
 
-      const checkboxes = document.querySelectorAll(".planet-facility-checkbox");
-      const facilities = [];
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          facilities.push({ type: cb.value });
+      // Check if facility already exists
+      if (!station.facilities.some(f => f.type === facType)) {
+        station.facilities.push({ type: facType });
+        await dbSaveStation(station);
+        selectStationInDetails(selectedStationId);
+      } else {
+        showToast("Facility already exists on this station!", "warning");
+      }
+    });
+  }
+
+  // Delete Station Button
+  const deleteStationBtn = document.getElementById("delete-station-btn");
+  if (deleteStationBtn) {
+    deleteStationBtn.addEventListener("click", async () => {
+      if (selectedStationId && isAdmin) {
+        if (confirm(`Are you sure you want to delete space station ${selectedStationId}?`)) {
+          const sysId = selectedSystemId;
+          await dbDeleteStation(selectedStationId);
+          if (sysId) {
+            selectSystem(sysId);
+          }
         }
-      });
-
-      const newStation = {
-        id: `station-${Date.now()}`,
-        name,
-        owner,
-        building: "SpaceStation0",
-        iconRef: "/icons/SpaceStation0.webp",
-        facilities
-      };
-
-      if (!planet.stations) planet.stations = [];
-      planet.stations.push(newStation);
-
-      await dbSavePlanet(planet);
-
-      e.target.reset();
-      checkboxes.forEach(cb => cb.checked = false);
-      selectPlanetInDetails(selectedPlanetId);
+      }
     });
   }
 

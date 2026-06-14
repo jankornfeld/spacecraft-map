@@ -33,8 +33,8 @@
         <button class="tab-btn active" data-tab="search-tab">Systems</button>
         <button class="tab-btn" data-tab="sectors-tab">Sectors</button>
         <button class="tab-btn" data-tab="route-tab">Route</button>
-        <button class="tab-btn" data-tab="admin-tab">Creator</button>
-        <button class="tab-btn" data-tab="settings-tab">DB & Settings</button>
+        <button class="tab-btn admin-only" data-tab="admin-tab">Creator</button>
+        <button class="tab-btn admin-only" data-tab="settings-tab">DB & Settings</button>
       </div>
 
       <div class="tab-content">
@@ -219,6 +219,32 @@
               </form>
             </div>
 
+            <!-- 3b. Create Space Station -->
+            <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">3b. Create Space Station</h3>
+              <form id="create-station-form">
+                <div class="form-group">
+                  <label for="station-id-input">Station ID</label>
+                  <input type="text" id="station-id-input" placeholder="e.g. station-orion-alpha" required>
+                </div>
+                <div class="form-group">
+                  <label for="station-name-input">Station Name</label>
+                  <input type="text" id="station-name-input" placeholder="e.g. Orion Alpha" required>
+                </div>
+                <div class="form-group">
+                  <label for="station-owner-input">Owner / Faction</label>
+                  <input type="text" id="station-owner-input" placeholder="e.g. Independent">
+                </div>
+                <div class="form-group">
+                  <label for="station-system-select">Assign to Star System</label>
+                  <select id="station-system-select" required>
+                    <option value="">Select System...</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-sm">Save Space Station</button>
+              </form>
+            </div>
+
             <!-- 4. FTL Connections -->
             <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
               <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-emerald);">4. Add FTL Connections</h3>
@@ -362,118 +388,133 @@
         <button id="zoom-out-btn" class="control-btn" title="Zoom Out">−</button>
         <button id="zoom-reset-btn" class="control-btn" title="Recenter Map">⌖</button>
       </div>
+    </main>
 
-      <!-- Floating System/Planet Details Sidebar Card -->
-      <div id="details-panel" class="hud-card">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
-          <div>
-            <h2 id="detail-system-name" style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700;">Star System Name</h2>
-            <span id="detail-system-designation" style="font-size: 0.8rem; color: var(--text-secondary); font-family: var(--font-mono);">Designation Code</span>
-          </div>
-          <button id="close-details-btn" class="control-btn" style="width: 24px; height: 24px; font-size: 0.8rem; border-radius: 4px;">✕</button>
+    <!-- System/Planet/Station Details Sidebar Panel (Right Sidebar) -->
+    <div id="details-panel">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
+        <div>
+          <h2 id="detail-system-name" style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700;">Star System Name</h2>
+          <span id="detail-system-designation" style="font-size: 0.8rem; color: var(--text-secondary); font-family: var(--font-mono);">Designation Code</span>
+        </div>
+        <button id="close-details-btn" class="control-btn" style="width: 24px; height: 24px; font-size: 0.8rem; border-radius: 4px;">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
+        <div>Sector: <span id="detail-system-sector" style="font-weight: 600;">Sector Name</span></div>
+        <div>Coordinates: <span id="detail-system-coords" style="font-family: var(--font-mono); color: var(--text-secondary);">X: 0, Y: 0</span></div>
+        <div>Star Classification: <span id="detail-system-star-type" class="badge badge-blue">Star Type</span></div>
+        
+        <div style="display: flex; gap: 8px; margin: 4px 0;">
+          <button id="route-set-start-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as Start</button>
+          <button id="route-set-end-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as Destination</button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
-          <div>Sector: <span id="detail-system-sector" style="font-weight: 600;">Sector Name</span></div>
-          <div>Coordinates: <span id="detail-system-coords" style="font-family: var(--font-mono); color: var(--text-secondary);">X: 0, Y: 0</span></div>
-          <div>Star Classification: <span id="detail-system-star-type" class="badge badge-blue">Star Type</span></div>
-          
-          <div style="display: flex; gap: 8px; margin: 4px 0;">
-            <button id="route-set-start-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as Start</button>
-            <button id="route-set-end-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as Destination</button>
+        <!-- Planets Section inside details-panel -->
+        <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 8px;">
+          <label for="detail-planet-select" style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-blue);">Planets in System</label>
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+            <select id="detail-planet-select" style="flex: 1; padding: 6px;">
+              <!-- Populated dynamically with planets belonging to this system -->
+            </select>
           </div>
-
-          <!-- Planets Section inside details-panel -->
-          <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 8px;">
-            <label for="detail-planet-select" style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-blue);">Planets in System</label>
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-              <select id="detail-planet-select" style="flex: 1; padding: 6px;">
-                <!-- Populated dynamically with planets belonging to this system -->
-              </select>
+          
+          <div id="no-planets-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; display: block;">No planets cataloged in this system.</div>
+          
+          <!-- Planet Details Sub-Panel -->
+          <div id="planet-details-subpanel" style="display: none;">
+            <div style="font-size: 0.85rem; margin-bottom: 8px;">
+              Designation: <span id="detail-planet-designation" style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
             </div>
             
-            <div id="no-planets-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; display: block;">No planets cataloged in this system.</div>
+            <!-- Resources Section -->
+            <div style="margin-top: 12px;">
+              <label style="display: block; margin-bottom: 4px;">Extracted Resources</label>
+              <div id="detail-planet-resources-list" class="chips-container">
+                <!-- Resource chips -->
+              </div>
+              <div id="planet-no-resources-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No planetary resources cataloged.</div>
+              
+              <!-- Admin resource management form -->
+              <form id="add-planet-resource-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
+                <input type="text" id="new-planet-resource-input" placeholder="Add resource (e.g. Iron)" style="padding: 6px 10px; font-size: 0.8rem;" required>
+                <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
+              </form>
+            </div>
+
+            <!-- Deposits Section -->
+            <div style="margin-top: 12px;">
+              <label style="display: block; margin-bottom: 4px;">Planetary Deposits</label>
+              <div id="detail-planet-deposits-list" class="chips-container">
+                <!-- Deposit chips -->
+              </div>
+              <div id="planet-no-deposits-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No resource deposits recorded.</div>
+              
+              <!-- Admin deposits management form -->
+              <form id="add-planet-deposit-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
+                <input type="text" id="new-planet-deposit-input" placeholder="Add deposit code" style="padding: 6px 10px; font-size: 0.8rem;" required>
+                <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
+              </form>
+            </div>
+
+            <!-- Delete Planet Button (Admin Only) -->
+            <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
+              <button id="delete-planet-btn" class="btn btn-danger btn-sm" style="width: 100%;">Delete Planet</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Space Stations Section inside details-panel -->
+        <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 12px;">
+          <label for="detail-station-select" style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-purple);">Space Stations in System</label>
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+            <select id="detail-station-select" style="flex: 1; padding: 6px;">
+              <!-- Populated dynamically with stations belonging to this system -->
+            </select>
+          </div>
+          
+          <div id="no-stations-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; display: block;">No space stations cataloged in this system.</div>
+          
+          <!-- Station Details Sub-Panel -->
+          <div id="station-details-subpanel" style="display: none;">
+            <div style="font-size: 0.85rem; margin-bottom: 8px;">
+              Owner: <span id="detail-station-owner" style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
+            </div>
             
-            <!-- Planet Details Sub-Panel -->
-            <div id="planet-details-subpanel" style="display: none;">
-              <div style="font-size: 0.85rem; margin-bottom: 8px;">
-                Designation: <span id="detail-planet-designation" style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
+            <!-- Facilities Section -->
+            <div style="margin-top: 12px;">
+              <label style="display: block; margin-bottom: 4px;">Facilities & Services</label>
+              <div id="detail-station-facilities-list" class="chips-container">
+                <!-- Facility badges -->
               </div>
               
-              <!-- Resources Section -->
-              <div style="margin-top: 12px;">
-                <label style="display: block; margin-bottom: 4px;">Extracted Resources</label>
-                <div id="detail-planet-resources-list" class="chips-container">
-                  <!-- Resource chips -->
-                </div>
-                <div id="planet-no-resources-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No planetary resources cataloged.</div>
-                
-                <!-- Admin resource management form -->
-                <form id="add-planet-resource-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
-                  <input type="text" id="new-planet-resource-input" placeholder="Add resource (e.g. Iron)" style="padding: 6px 10px; font-size: 0.8rem;" required>
-                  <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
-                </form>
-              </div>
-
-              <!-- Deposits Section -->
-              <div style="margin-top: 12px;">
-                <label style="display: block; margin-bottom: 4px;">Planetary Deposits</label>
-                <div id="detail-planet-deposits-list" class="chips-container">
-                  <!-- Deposit chips -->
-                </div>
-                <div id="planet-no-deposits-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No resource deposits recorded.</div>
-                
-                <!-- Admin deposits management form -->
-                <form id="add-planet-deposit-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
-                  <input type="text" id="new-planet-deposit-input" placeholder="Add deposit code" style="padding: 6px 10px; font-size: 0.8rem;" required>
-                  <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
-                </form>
-              </div>
-
-              <!-- Space Stations Section -->
-              <div style="margin-top: 12px;">
-                <label style="display: block; margin-bottom: 4px;">Space Stations & Orbital Facilities</label>
-                <div id="detail-planet-stations-list" style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
-                  <!-- Stations rendered dynamically -->
-                </div>
-                
-                <!-- Admin station management trigger -->
-                <form id="add-planet-station-form" class="admin-only" style="margin-top: 10px; border-top: 1px solid var(--border-light); padding-top: 10px;">
-                  <div class="form-group" style="margin-bottom: 8px;">
-                    <input type="text" id="new-planet-station-name" placeholder="Station Name (e.g. Babylon)" style="padding: 6px 10px; font-size: 0.8rem;" required>
-                  </div>
-                  <div class="form-group" style="margin-bottom: 8px;">
-                    <input type="text" id="new-planet-station-owner" placeholder="Owner (e.g. TheCo)" style="padding: 6px 10px; font-size: 0.8rem;">
-                  </div>
-                  <div class="form-group" style="margin-bottom: 8px;">
-                    <label style="font-size:0.7rem;">Facilities</label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.8rem;">
-                      <label style="display:flex; align-items:center; gap:4px; text-transform:none;"><input type="checkbox" class="planet-facility-checkbox" value="Dock" style="width:auto;"> Dock</label>
-                      <label style="display:flex; align-items:center; gap:4px; text-transform:none;"><input type="checkbox" class="planet-facility-checkbox" value="ShipYard" style="width:auto;"> Shipyard</label>
-                      <label style="display:flex; align-items:center; gap:4px; text-transform:none;"><input type="checkbox" class="planet-facility-checkbox" value="MiningBureau" style="width:auto;"> Mining Bureau</label>
-                      <label style="display:flex; align-items:center; gap:4px; text-transform:none;"><input type="checkbox" class="planet-facility-checkbox" value="Laboratory" style="width:auto;"> Laboratory</label>
-                      <label style="display:flex; align-items:center; gap:4px; text-transform:none;"><input type="checkbox" class="planet-facility-checkbox" value="Marketplace" style="width:auto;"> Marketplace</label>
-                    </div>
-                  </div>
-                  <button type="submit" class="btn btn-sm" style="width:100%;">Add Station</button>
-                </form>
-              </div>
-
-              <!-- Delete Planet Button (Admin Only) -->
-              <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-                <button id="delete-planet-btn" class="btn btn-danger btn-sm" style="width: 100%;">Delete Planet</button>
-              </div>
+              <!-- Admin facility management form -->
+              <form id="add-station-facility-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
+                <select id="new-station-facility-select" style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
+                  <option value="Dock">Dock</option>
+                  <option value="ShipYard">Shipyard</option>
+                  <option value="MiningBureau">Mining Bureau</option>
+                  <option value="Laboratory">Laboratory</option>
+                  <option value="Marketplace">Marketplace</option>
+                </select>
+                <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
+              </form>
+            </div>
+            
+            <!-- Delete Station Button (Admin Only) -->
+            <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
+              <button id="delete-station-btn" class="btn btn-danger btn-sm" style="width: 100%;">Delete Space Station</button>
             </div>
           </div>
-
-          <!-- Edit Star Coordinates / Delete Star System (Admin Only) -->
-          <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px; display: flex; gap: 8px;">
-            <button id="delete-system-btn" class="btn btn-danger btn-sm" style="flex:1;">Delete Star System</button>
-          </div>
-
         </div>
+
+        <!-- Edit Star Coordinates / Delete Star System (Admin Only) -->
+        <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px; display: flex; gap: 8px;">
+          <button id="delete-system-btn" class="btn btn-danger btn-sm" style="flex:1;">Delete Star System</button>
+        </div>
+
       </div>
-    </main>
+    </div>
 
   </div>
 
