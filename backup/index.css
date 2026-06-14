@@ -452,6 +452,30 @@ input:focus, select:focus, textarea:focus {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.sector-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.sector-item-info {
+  flex: 1;
+}
+
+.sector-item-toggle {
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+}
+
+.sector-item-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent-blue);
+}
+
 .result-header {
   display: flex;
   justify-content: space-between;

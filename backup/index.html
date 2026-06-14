@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SpaceCraft Galaxy Map Creator</title>
   <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
 
   <!-- Place Mode Banner notification -->
@@ -15,7 +17,7 @@
   </div>
 
   <div id="app-layout">
-    
+
     <!-- Top Header -->
     <header>
       <h1>🌌 SpaceCraft Galaxy Map</h1>
@@ -38,7 +40,7 @@
       </div>
 
       <div class="tab-content">
-        
+
         <!-- Tab 1: Search & Filter -->
         <div id="search-tab" class="tab-pane active">
           <div class="form-group">
@@ -53,8 +55,10 @@
             </select>
           </div>
 
-          
-          <h3 style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; margin-top: 10px;">Results (<span id="results-count">0</span>)</h3>
+
+          <h3
+            style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; margin-top: 10px;">
+            Results (<span id="results-count">0</span>)</h3>
           <div id="search-results-list" class="search-results">
             <!-- Search items added dynamically -->
           </div>
@@ -90,13 +94,19 @@
             <button id="clear-route-btn" class="btn btn-sec">Clear</button>
           </div>
 
-          <div id="route-details" style="display: none; margin-top: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-light); padding: 14px; border-radius: 8px;">
-            <h4 style="font-family: var(--font-mono); color: var(--accent-emerald); font-size: 0.95rem; margin-bottom: 8px;">Path Calculated</h4>
+          <div id="route-details"
+            style="display: none; margin-top: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-light); padding: 14px; border-radius: 8px;">
+            <h4
+              style="font-family: var(--font-mono); color: var(--accent-emerald); font-size: 0.95rem; margin-bottom: 8px;">
+              Path Calculated</h4>
             <p style="font-size: 0.85rem; margin-bottom: 6px;">Total Jumps: <strong id="route-jumps">0</strong></p>
             <p style="font-size: 0.85rem; margin-bottom: 12px;">Total FTL Cost: <strong id="route-cost">0</strong></p>
-            
-            <h5 style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">Navigation Steps:</h5>
-            <ol id="route-steps-list" style="padding-left: 16px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
+
+            <h5
+              style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">
+              Navigation Steps:</h5>
+            <ol id="route-steps-list"
+              style="padding-left: 16px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
               <!-- Steps dynamically generated -->
             </ol>
           </div>
@@ -104,20 +114,24 @@
 
         <!-- Tab 4: Creator / Admin Tools -->
         <div id="admin-tab" class="tab-pane">
-          
+
           <!-- Locked view -->
           <div id="creator-locked-message" style="text-align: center; padding: 40px 10px;">
             <span style="font-size: 3rem;">🔒</span>
             <h3 style="font-family: var(--font-mono); margin-top: 10px;">Access Denied</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">Please log in as an administrator from the top-right button to create and edit sectors, planets, and connections.</p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">Please log in as an
+              administrator from the top-right button to create and edit sectors, planets, and connections.</p>
           </div>
 
           <!-- Creator Panels -->
           <div id="creator-tools-panel" class="admin-only" style="display: flex; flex-direction: column; gap: 24px;">
-            
+
             <!-- 1. Create Sector -->
-            <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
-              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">1. Create Sector</h3>
+            <div
+              style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+              <h3
+                style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">
+                1. Create Sector</h3>
               <form id="create-sector-form">
                 <div class="form-group">
                   <label for="sector-id-input">Sector ID</label>
@@ -129,27 +143,36 @@
                 </div>
                 <div class="form-group">
                   <label for="sector-color-input">Sector Theme Color</label>
-                  <input type="color" id="sector-color-input" value="#a855f7" style="height: 40px; padding: 2px; cursor: pointer;">
+                  <input type="color" id="sector-color-input" value="#a855f7"
+                    style="height: 40px; padding: 2px; cursor: pointer;">
                 </div>
                 <div class="form-group">
                   <label for="sector-polygon-input">Boundary Polygon coordinates</label>
                   <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <button type="button" id="activate-sector-pin-btn" class="btn btn-sec btn-sm" style="flex: 2;">📍 Pin Points on Map</button>
-                    <button type="button" id="undo-sector-pin-btn" class="btn btn-sec btn-sm" style="flex: 1; display: none;">Undo</button>
-                    <button type="button" id="clear-sector-pin-btn" class="btn btn-sec btn-sm" style="flex: 1; display: none; color: var(--accent-red);">Clear</button>
+                    <button type="button" id="activate-sector-pin-btn" class="btn btn-sec btn-sm" style="flex: 2;">📍
+                      Pin Points on Map</button>
+                    <button type="button" id="undo-sector-pin-btn" class="btn btn-sec btn-sm"
+                      style="flex: 1; display: none;">Undo</button>
+                    <button type="button" id="clear-sector-pin-btn" class="btn btn-sec btn-sm"
+                      style="flex: 1; display: none; color: var(--accent-red);">Clear</button>
                   </div>
                   <textarea id="sector-polygon-input" rows="3" placeholder="[[X1,Y1],[X2,Y2],...]" required></textarea>
-                  <span style="font-size: 0.75rem; color: var(--text-muted)">Define boundaries in X/Y coords to draw background overlays.</span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted)">Define boundaries in X/Y coords to draw
+                    background overlays.</span>
                 </div>
                 <button type="submit" class="btn btn-sm">Save Sector</button>
               </form>
             </div>
 
             <!-- 2. Create Star System -->
-            <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
-              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">2. Create Star System</h3>
+            <div
+              style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+              <h3
+                style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">
+                2. Create Star System</h3>
               <div style="margin-bottom: 14px;">
-                <button id="activate-place-mode-btn" class="btn btn-sec btn-sm" style="width: 100%;">📍 Click Map to Select Coordinates</button>
+                <button id="activate-place-mode-btn" class="btn btn-sec btn-sm" style="width: 100%;">📍 Click Map to
+                  Select Coordinates</button>
               </div>
               <form id="create-system-form">
                 <div class="form-group">
@@ -182,15 +205,19 @@
                 </div>
                 <div class="form-group">
                   <label for="system-star-color-input">Star Color</label>
-                  <input type="color" id="system-star-color-input" value="#f5d271" style="height: 40px; padding: 2px; cursor: pointer;">
+                  <input type="color" id="system-star-color-input" value="#f5d271"
+                    style="height: 40px; padding: 2px; cursor: pointer;">
                 </div>
                 <button type="submit" class="btn btn-sm">Save Star System</button>
               </form>
             </div>
 
             <!-- 3. Create Planet -->
-            <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
-              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">3. Create Planet</h3>
+            <div
+              style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+              <h3
+                style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">
+                3. Create Planet</h3>
               <form id="create-planet-form">
                 <div class="form-group">
                   <label for="planet-id-input">Planet ID</label>
@@ -215,8 +242,11 @@
             </div>
 
             <!-- 3b. Create Space Station -->
-            <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
-              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">3b. Create Space Station</h3>
+            <div
+              style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+              <h3
+                style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">
+                3b. Create Space Station</h3>
               <form id="create-station-form">
                 <div class="form-group">
                   <label for="station-id-input">Station ID</label>
@@ -241,8 +271,11 @@
             </div>
 
             <!-- 4. FTL Connections -->
-            <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
-              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-emerald);">4. Add FTL Connections</h3>
+            <div
+              style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+              <h3
+                style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-emerald);">
+                4. Add FTL Connections</h3>
               <form id="create-connection-form">
                 <div class="form-group">
                   <label for="conn-from-select">System A</label>
@@ -265,16 +298,22 @@
             </div>
 
             <!-- 5. Import / Export Database -->
-            <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01); display: flex; flex-direction: column; gap: 10px;">
-              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-yellow);">5. Import / Export Database</h3>
-              <button id="export-json-btn" class="btn btn-sec btn-sm" style="width: 100%;">💾 Export Custom Galaxy JSON</button>
-              
+            <div
+              style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01); display: flex; flex-direction: column; gap: 10px;">
+              <h3
+                style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-yellow);">
+                5. Import / Export Database</h3>
+              <button id="export-json-btn" class="btn btn-sec btn-sm" style="width: 100%;">💾 Export Custom Galaxy
+                JSON</button>
+
               <div style="position: relative;">
-                <button id="import-json-trigger-btn" class="btn btn-sec btn-sm" style="width: 100%;">📂 Import Galaxy JSON</button>
+                <button id="import-json-trigger-btn" class="btn btn-sec btn-sm" style="width: 100%;">📂 Import Galaxy
+                  JSON</button>
                 <input type="file" id="import-json-file-input" accept=".json" style="display: none;">
               </div>
-              
-              <button id="clear-database-btn" class="btn btn-danger btn-sm" style="width: 100%;">🗑️ WIPE Map & Start Blank</button>
+
+              <button id="clear-database-btn" class="btn btn-danger btn-sm" style="width: 100%;">🗑️ WIPE Map & Start
+                Blank</button>
             </div>
 
           </div>
@@ -282,10 +321,13 @@
 
         <!-- Tab 5: Database Settings & Visuals -->
         <div id="settings-tab" class="tab-pane">
-          
+
           <!-- Database Credentials Setup Card -->
-          <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); margin-bottom: 20px;">
-            <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; color: var(--accent-yellow);">Supabase Integration</h3>
+          <div
+            style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); margin-bottom: 20px;">
+            <h3
+              style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; color: var(--accent-yellow);">
+              Supabase Integration</h3>
             <form id="db-config-form">
               <div class="form-group">
                 <label for="db-url-input">Supabase Project URL</label>
@@ -301,25 +343,32 @@
               </div>
             </form>
             <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px; line-height: 1.3;">
-              Leave blank to run in <strong>Offline Local-Only Sandbox Mode</strong>. When blank, the app loads from the sample template layout, and edits are stored inside your browser's local cache.
+              Leave blank to run in <strong>Offline Local-Only Sandbox Mode</strong>. When blank, the app loads from the
+              sample template layout, and edits are stored inside your browser's local cache.
             </p>
           </div>
 
           <!-- Map Settings Card -->
-          <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
-            <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; color: var(--accent-blue);">Map Controls</h3>
-            
-            <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div
+            style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
+            <h3
+              style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; color: var(--accent-blue);">
+              Map Controls</h3>
+
+            <div class="form-group"
+              style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <label for="toggle-grid-checkbox" style="cursor: pointer;">Show Coordinate Grid</label>
               <input type="checkbox" id="toggle-grid-checkbox" checked style="width: auto; cursor: pointer;">
             </div>
 
-            <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="form-group"
+              style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <label for="toggle-sectors-checkbox" style="cursor: pointer;">Show Sector Boundaries</label>
               <input type="checkbox" id="toggle-sectors-checkbox" checked style="width: auto; cursor: pointer;">
             </div>
 
-            <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="form-group"
+              style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <label for="toggle-labels-checkbox" style="cursor: pointer;">Show Planet Names</label>
               <input type="checkbox" id="toggle-labels-checkbox" checked style="width: auto; cursor: pointer;">
             </div>
@@ -339,22 +388,30 @@
           </div>
 
           <!-- World Save Upload Panel -->
-          <div style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); margin-top: 20px;">
-            <h3 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 10px; color: var(--accent-purple);">SST Game Save Scanner</h3>
+          <div
+            style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); margin-top: 20px;">
+            <h3
+              style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 10px; color: var(--accent-purple);">
+              SST Game Save Scanner</h3>
             <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.3;">
               Import stars, seeds, and sector presets directly by uploading your SpaceCraft save files.
             </p>
-            <div id="dropzone" style="border: 2px dashed var(--border-light); padding: 24px 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: var(--transition-smooth); background: rgba(0,0,0,0.15);">
+            <div id="dropzone"
+              style="border: 2px dashed var(--border-light); padding: 24px 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: var(--transition-smooth); background: rgba(0,0,0,0.15);">
               <span style="font-size: 2rem;">📁</span>
               <p style="font-size: 0.8rem; font-weight: 600; margin-top: 8px;">Drag & Drop `.sst` files here</p>
               <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">Or click to choose save files</p>
               <input type="file" id="sst-file-input" accept=".sst,.sav" multiple style="display: none;">
             </div>
             <div id="upload-status" style="margin-top: 10px; display: none;">
-              <div id="upload-progress-bar" style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden;">
-                <div id="upload-progress-fill" style="width: 0%; height: 100%; background: var(--accent-purple); transition: var(--transition-smooth);"></div>
+              <div id="upload-progress-bar"
+                style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden;">
+                <div id="upload-progress-fill"
+                  style="width: 0%; height: 100%; background: var(--accent-purple); transition: var(--transition-smooth);">
+                </div>
               </div>
-              <p id="upload-status-text" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; text-align: center;"></p>
+              <p id="upload-status-text"
+                style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; text-align: center;"></p>
             </div>
           </div>
 
@@ -387,52 +444,70 @@
 
     <!-- System/Planet/Station Details Sidebar Panel (Right Sidebar) -->
     <div id="details-panel">
-      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
         <div>
-          <h2 id="detail-system-name" style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700;">Star System Name</h2>
-          <span id="detail-system-designation" style="font-size: 0.8rem; color: var(--text-secondary); font-family: var(--font-mono);">Designation Code</span>
+          <h2 id="detail-system-name" style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700;">Star
+            System Name</h2>
+          <span id="detail-system-designation"
+            style="font-size: 0.8rem; color: var(--text-secondary); font-family: var(--font-mono);">Designation
+            Code</span>
         </div>
-        <button id="close-details-btn" class="control-btn" style="width: 24px; height: 24px; font-size: 0.8rem; border-radius: 4px;">✕</button>
+        <button id="close-details-btn" class="control-btn"
+          style="width: 24px; height: 24px; font-size: 0.8rem; border-radius: 4px;">✕</button>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
         <div>Sector: <span id="detail-system-sector" style="font-weight: 600;">Sector Name</span></div>
-        <div style="display: none;">Coordinates: <span id="detail-system-coords" style="font-family: var(--font-mono); color: var(--text-secondary);">X: 0, Y: 0</span></div>
-        <div style="display: none;">Star Classification: <span id="detail-system-star-type" class="badge badge-blue">Star Type</span></div>
-        
+        <div style="display: none;">Coordinates: <span id="detail-system-coords"
+            style="font-family: var(--font-mono); color: var(--text-secondary);">X: 0, Y: 0</span></div>
+        <div style="display: none;">Star Classification: <span id="detail-system-star-type"
+            class="badge badge-blue">Star Type</span></div>
+
         <div style="display: flex; gap: 8px; margin: 4px 0;">
-          <button id="route-set-start-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as Start</button>
-          <button id="route-set-end-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as Destination</button>
+          <button id="route-set-start-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as
+            Start</button>
+          <button id="route-set-end-btn" class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;">Set as
+            Destination</button>
         </div>
 
         <!-- Planets Section inside details-panel -->
         <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 8px;">
-          <label for="detail-planet-select" style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-blue);">Planets in System</label>
+          <label for="detail-planet-select"
+            style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-blue);">Planets in
+            System</label>
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
             <select id="detail-planet-select" style="flex: 1; padding: 6px;">
               <!-- Populated dynamically with planets belonging to this system -->
             </select>
           </div>
-          
-          <div id="no-planets-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; display: block;">No planets cataloged in this system.</div>
-          
+
+          <div id="no-planets-msg"
+            style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; display: block;">No planets
+            cataloged in this system.</div>
+
           <!-- Planet Details Sub-Panel -->
           <div id="planet-details-subpanel" style="display: none;">
             <div style="font-size: 0.85rem; margin-bottom: 8px; display: none;">
-              Designation: <span id="detail-planet-designation" style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
+              Designation: <span id="detail-planet-designation"
+                style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
             </div>
-            
+
             <!-- Resources Section -->
             <div style="margin-top: 12px;">
               <label style="display: block; margin-bottom: 4px;">Extracted Resources</label>
               <div id="detail-planet-resources-list" class="chips-container">
                 <!-- Resource chips -->
               </div>
-              <div id="planet-no-resources-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No planetary resources cataloged.</div>
-              
+              <div id="planet-no-resources-msg"
+                style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No planetary resources
+                cataloged.</div>
+
               <!-- Admin resource management form -->
               <form id="add-planet-resource-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
-                <input type="text" id="new-planet-resource-input" placeholder="Add resource (e.g. Iron)" style="padding: 6px 10px; font-size: 0.8rem;" required>
+                <select id="new-planet-resource-select" style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
+                  <option value="">Select Resource...</option>
+                </select>
                 <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
               </form>
             </div>
@@ -443,17 +518,21 @@
               <div id="detail-planet-deposits-list" class="chips-container">
                 <!-- Deposit chips -->
               </div>
-              <div id="planet-no-deposits-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No resource deposits recorded.</div>
-              
+              <div id="planet-no-deposits-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">
+                No resource deposits recorded.</div>
+
               <!-- Admin deposits management form -->
               <form id="add-planet-deposit-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
-                <input type="text" id="new-planet-deposit-input" placeholder="Add deposit code" style="padding: 6px 10px; font-size: 0.8rem;" required>
+                <select id="new-planet-deposit-select" style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
+                  <option value="">Select Deposit...</option>
+                </select>
                 <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
               </form>
             </div>
 
             <!-- Delete Planet Button (Admin Only) -->
-            <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
+            <div class="admin-only"
+              style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
               <button id="delete-planet-btn" class="btn btn-danger btn-sm" style="width: 100%;">Delete Planet</button>
             </div>
           </div>
@@ -461,31 +540,38 @@
 
         <!-- Space Stations Section inside details-panel -->
         <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 12px;">
-          <label for="detail-station-select" style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-purple);">Space Stations in System</label>
+          <label for="detail-station-select"
+            style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-purple);">Space Stations in
+            System</label>
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
             <select id="detail-station-select" style="flex: 1; padding: 6px;">
               <!-- Populated dynamically with stations belonging to this system -->
             </select>
           </div>
-          
-          <div id="no-stations-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; display: block;">No space stations cataloged in this system.</div>
-          
+
+          <div id="no-stations-msg"
+            style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; display: block;">No space stations
+            cataloged in this system.</div>
+
           <!-- Station Details Sub-Panel -->
           <div id="station-details-subpanel" style="display: none;">
             <div style="font-size: 0.85rem; margin-bottom: 8px;">
-              Owner: <span id="detail-station-owner" style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
+              Owner: <span id="detail-station-owner"
+                style="font-family: var(--font-mono); color: var(--text-secondary);"></span>
             </div>
-            
+
             <!-- Facilities Section -->
             <div style="margin-top: 12px;">
               <label style="display: block; margin-bottom: 4px;">Facilities & Services</label>
               <div id="detail-station-facilities-list" class="chips-container">
                 <!-- Facility badges -->
               </div>
-              
+
               <!-- Admin facility management form -->
-              <form id="add-station-facility-form" class="admin-only" style="margin-top: 10px; display: flex; gap: 6px;">
-                <select id="new-station-facility-select" style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
+              <form id="add-station-facility-form" class="admin-only"
+                style="margin-top: 10px; display: flex; gap: 6px;">
+                <select id="new-station-facility-select" style="padding: 6px 10px; font-size: 0.8rem; flex: 1;"
+                  required>
                   <option value="Dock">Dock</option>
                   <option value="ShipYard">Shipyard</option>
                   <option value="MiningBureau">Mining Bureau</option>
@@ -495,16 +581,19 @@
                 <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
               </form>
             </div>
-            
+
             <!-- Delete Station Button (Admin Only) -->
-            <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-              <button id="delete-station-btn" class="btn btn-danger btn-sm" style="width: 100%;">Delete Space Station</button>
+            <div class="admin-only"
+              style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
+              <button id="delete-station-btn" class="btn btn-danger btn-sm" style="width: 100%;">Delete Space
+                Station</button>
             </div>
           </div>
         </div>
 
         <!-- Edit Star Coordinates / Delete Star System (Admin Only) -->
-        <div class="admin-only" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px; display: flex; gap: 8px;">
+        <div class="admin-only"
+          style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px; display: flex; gap: 8px;">
           <button id="delete-system-btn" class="btn btn-danger btn-sm" style="flex:1;">Delete Star System</button>
         </div>
 
@@ -529,7 +618,8 @@
           <label for="login-password">Password</label>
           <input type="password" id="login-password" required placeholder="admin">
         </div>
-        <div id="login-error" style="color: var(--accent-red); font-size: 0.85rem; margin-bottom: 12px; display: none; text-align: center;">
+        <div id="login-error"
+          style="color: var(--accent-red); font-size: 0.85rem; margin-bottom: 12px; display: none; text-align: center;">
           Invalid credentials. Please try again.
         </div>
         <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -545,8 +635,13 @@
 
   <!-- Load Supabase CDN Client JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
   <!-- Main Script -->
   <script src="index.js"></script>
 </body>
+
+</html>
+<script src="index.js"></script>
+</body>
+
 </html>

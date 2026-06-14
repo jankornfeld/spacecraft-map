@@ -27,6 +27,52 @@ let SUPABASE_KEY = "sb_publishable_gVzF3Pt1I0CLSnrqB99Ebg_INqarOC-";
 let supabaseClient = null;
 let isDbConnected = false;
 
+const ALL_RESOURCES = [
+  "Iron",
+  "Copper",
+  "Coal",
+  "Quartz",
+  "Silicate",
+  "Aluminum",
+  "Calcite",
+  "Aquamarine",
+  "Feldspar",
+  "Titanium",
+  "Gold",
+  "Silver",
+  "Lithium",
+  "Uranium",
+  "Sulfur",
+  "Water"
+];
+
+const ALL_DEPOSITS = [
+  "Iron Deposit",
+  "Dense Iron Deposit",
+  "Copper Deposit",
+  "Dense Copper Deposit",
+  "Coal Deposit",
+  "Dense Coal Deposit",
+  "Quartz Deposit",
+  "Dense Quartz Deposit",
+  "Silicate Deposit",
+  "Aluminum Deposit",
+  "Dense Aluminum Deposit",
+  "Calcite Deposit",
+  "Aquamarine Deposit",
+  "Feldspar Deposit",
+  "Titanium Deposit",
+  "Dense Titanium Deposit",
+  "Gold Deposit",
+  "Dense Gold Deposit",
+  "Silver Deposit",
+  "Lithium Deposit",
+  "Uranium Deposit",
+  "Sulfur Deposit",
+  "Water Geyser",
+  "Sulfuric Acid Geyser"
+];
+
 // Application Datasets
 let sectors = [];
 let systems = [];
@@ -46,6 +92,7 @@ let startY = 0;
 let isPlaceMode = false;
 let isSectorPinMode = false;
 let tempSectorPoints = [];
+let hiddenSectorIds = new Set();
 let isAdmin = false;
 let selectedSystemId = null;
 let selectedPlanetId = null;
@@ -66,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initForms();
   initSettings();
   initSstDropzone();
+  initSectorsTabEvents();
 
   // Load initial data
   loadData();
@@ -208,6 +256,7 @@ async function loadData() {
       renderMap();
       populateDropdowns();
       runSearch();
+      renderSectorsList();
     } catch (e) {
       console.error("Error fetching from Supabase", e);
       showToast("Cloud DB fetch failed. Falling back to local storage.", "warning");
@@ -237,6 +286,7 @@ function loadDataFromLocalStorage() {
   renderMap();
   populateDropdowns();
   runSearch();
+  renderSectorsList();
 }
 
 function saveLocalBackup() {
@@ -304,6 +354,7 @@ async function dbSaveSector(sector) {
   } else {
     showToast(`Sector '${sector.name}' saved locally`, "success");
   }
+  renderSectorsList();
 }
 
 async function dbSaveSystem(sys) {
@@ -340,6 +391,7 @@ async function dbSaveSystem(sys) {
   } else {
     showToast(`System '${sys.name}' saved locally`, "success");
   }
+  renderSectorsList();
 }
 
 async function dbSavePlanet(planet) {
@@ -478,6 +530,7 @@ async function dbDeleteSystem(sysId) {
   renderMap();
   populateDropdowns();
   runSearch();
+  renderSectorsList();
   document.getElementById("details-panel").style.display = "none";
   document.getElementById("app-layout").classList.remove("details-open");
 }
@@ -530,6 +583,7 @@ async function dbWipe() {
   renderMap();
   populateDropdowns();
   runSearch();
+  renderSectorsList();
 }
 
 // --- 4. TABS CONTROLLER ---
@@ -546,6 +600,86 @@ function initTabs() {
       const activeTabId = btn.getAttribute("data-tab");
       document.getElementById(activeTabId).classList.add("active");
     });
+  });
+}
+
+function initSectorsTabEvents() {
+  const toggleAllBtn = document.getElementById("toggle-all-sectors-btn");
+  if (toggleAllBtn) {
+    toggleAllBtn.addEventListener("click", () => {
+      if (sectors.length === 0) return;
+      const allVisible = sectors.every(sec => !hiddenSectorIds.has(sec.id));
+      if (allVisible) {
+        sectors.forEach(sec => hiddenSectorIds.add(sec.id));
+        showToast("Hidden all sector boundaries");
+      } else {
+        hiddenSectorIds.clear();
+        showToast("Showing all sector boundaries");
+      }
+      renderSectors();
+      renderSectorsList();
+    });
+  }
+}
+
+function renderSectorsList() {
+  const listEl = document.getElementById("sectors-list");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+
+  if (sectors.length === 0) {
+    listEl.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">No sectors found.</div>`;
+    return;
+  }
+
+  sectors.forEach(sec => {
+    const isVisible = !hiddenSectorIds.has(sec.id);
+    const sysCount = systems.filter(s => s.sectorId === sec.id).length;
+
+    const item = document.createElement("div");
+    item.className = "result-item sector-item";
+    item.style.borderLeft = `4px solid ${sec.color}`;
+
+    // Left info side
+    const infoDiv = document.createElement("div");
+    infoDiv.className = "sector-item-info";
+    infoDiv.innerHTML = `
+      <div class="result-header">
+        <span>${sec.name}</span>
+      </div>
+      <div class="result-subtitle">${sysCount} ${sysCount === 1 ? 'system' : 'systems'}</div>
+    `;
+    infoDiv.addEventListener("click", () => {
+      if (sec.centroid) {
+        flyToSystem(sec.centroid.x, sec.centroid.y);
+        showToast(`Centering map on sector: ${sec.name}`);
+      } else {
+        showToast(`No centroid defined for sector: ${sec.name}`, "warning");
+      }
+    });
+
+    // Right toggle side
+    const toggleDiv = document.createElement("div");
+    toggleDiv.className = "sector-item-toggle";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = isVisible;
+    checkbox.title = "Toggle sector boundary visibility on map";
+    checkbox.addEventListener("change", (e) => {
+      e.stopPropagation();
+      if (checkbox.checked) {
+        hiddenSectorIds.delete(sec.id);
+      } else {
+        hiddenSectorIds.add(sec.id);
+      }
+      renderSectors();
+    });
+
+    toggleDiv.appendChild(checkbox);
+    item.appendChild(infoDiv);
+    item.appendChild(toggleDiv);
+    listEl.appendChild(item);
   });
 }
 
@@ -599,7 +733,7 @@ function initMapEvents() {
 
       tempSectorPoints.push([parseFloat(mapX.toFixed(1)), parseFloat(mapY.toFixed(1))]);
       document.getElementById("sector-polygon-input").value = JSON.stringify(tempSectorPoints);
-      
+
       renderDraftSector();
     }
   });
@@ -784,6 +918,7 @@ function renderSectors() {
   sectors.forEach(sec => {
     // Hide sector boundary if polygon points are empty or invalid
     if (!sec.polygon || sec.polygon.length < 3) return;
+    if (hiddenSectorIds.has(sec.id)) return;
 
     // Draw polygon
     const pointsStr = sec.polygon.map(p => p.join(",")).join(" ");
@@ -950,9 +1085,9 @@ function selectSystem(sysId) {
   const planetSelect = document.getElementById("detail-planet-select");
   const noPlanetsMsg = document.getElementById("no-planets-msg");
   const subpanel = document.getElementById("planet-details-subpanel");
-  
+
   planetSelect.innerHTML = "";
-  
+
   const sysPlanets = planets.filter(p => p.systemId === sysId);
   if (sysPlanets.length > 0) {
     noPlanetsMsg.style.display = "none";
@@ -998,11 +1133,11 @@ function selectSystem(sysId) {
   flyToSystem(sys.x, sys.y);
 }
 
-window.selectPlanetInDetails = function(planetId) {
+window.selectPlanetInDetails = function (planetId) {
   selectedPlanetId = planetId;
   const planet = planets.find(p => p.id === planetId);
   const subpanel = document.getElementById("planet-details-subpanel");
-  
+
   if (!planet) {
     if (subpanel) subpanel.style.display = "none";
     return;
@@ -1054,7 +1189,7 @@ window.selectPlanetInDetails = function(planetId) {
   }
 };
 
-window.selectStationInDetails = function(stationId) {
+window.selectStationInDetails = function (stationId) {
   selectedStationId = stationId;
   const station = stations.find(s => s.id === stationId);
   const subpanel = document.getElementById("station-details-subpanel");
@@ -1628,7 +1763,7 @@ function enableSectorPinMode() {
   isSectorPinMode = true;
   isPlaceMode = false;
   document.getElementById("place-banner").classList.remove("active");
-  
+
   const banner = document.getElementById("place-banner");
   banner.querySelector("span").innerHTML = `<strong>Sector Pin Mode Active:</strong> Click on the map to add boundary points.`;
   banner.classList.add("active");
@@ -1644,7 +1779,7 @@ function disableSectorPinMode() {
   document.getElementById("undo-sector-pin-btn").style.display = "none";
   document.getElementById("clear-sector-pin-btn").style.display = "none";
   document.getElementById("activate-sector-pin-btn").textContent = "📍 Pin Points on Map";
-  
+
   const draftLayer = document.getElementById("draft-sector-layer");
   if (draftLayer) draftLayer.innerHTML = "";
 }
@@ -1769,6 +1904,24 @@ function populateDropdowns() {
       stationSystemSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
     });
   }
+
+  // 7. Planet details resource dropdown
+  const resourceSelect = document.getElementById("new-planet-resource-select");
+  if (resourceSelect) {
+    resourceSelect.innerHTML = '<option value="">Select Resource...</option>';
+    ALL_RESOURCES.sort().forEach(r => {
+      resourceSelect.innerHTML += `<option value="${r}">${r}</option>`;
+    });
+  }
+
+  // 8. Planet details deposit dropdown
+  const depositSelect = document.getElementById("new-planet-deposit-select");
+  if (depositSelect) {
+    depositSelect.innerHTML = '<option value="">Select Deposit...</option>';
+    ALL_DEPOSITS.sort().forEach(d => {
+      depositSelect.innerHTML += `<option value="${d}">${d}</option>`;
+    });
+  }
 }
 
 // JSON Portability (Export)
@@ -1862,6 +2015,7 @@ async function importGalaxyJson(e) {
       populateDropdowns();
       runSearch();
       recenterMap();
+      renderSectorsList();
 
       showToast("Galaxy layout imported successfully", "success");
     } catch (err) {
@@ -1975,7 +2129,7 @@ function initSettings() {
       const planet = planets.find(p => p.id === selectedPlanetId);
       if (!planet) return;
 
-      const resName = document.getElementById("new-planet-resource-input").value.trim();
+      const resName = document.getElementById("new-planet-resource-select").value;
       if (resName && !planet.resources.includes(resName)) {
         planet.resources.push(resName);
         await dbSavePlanet(planet);
@@ -1996,7 +2150,7 @@ function initSettings() {
       const planet = planets.find(p => p.id === selectedPlanetId);
       if (!planet) return;
 
-      const depName = document.getElementById("new-planet-deposit-input").value.trim();
+      const depName = document.getElementById("new-planet-deposit-select").value;
       if (depName && !planet.deposits.includes(depName)) {
         planet.deposits.push(depName);
         await dbSavePlanet(planet);
@@ -2233,6 +2387,7 @@ async function importParsedWorkerLayout(result) {
     populateDropdowns();
     runSearch();
     recenterMap();
+    renderSectorsList();
 
     showToast(`Successfully scanned & loaded ${result.terrainPlacements.length} systems from save folder!`, "success");
   } catch (e) {
