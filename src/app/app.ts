@@ -2,7 +2,7 @@ import { Component, signal, computed, effect, HostListener, OnInit } from '@angu
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { GalaxyService } from './services/galaxy.service';
-import { Sector, StarSystem, Planet, SpaceStation, Connection } from './models/galaxy.model';
+import { Sector, StarSystem, Planet, SpaceStation, Connection, PlanetBase, BaseProduction } from './models/galaxy.model';
 
 @Component({
   selector: 'app-root',
@@ -55,6 +55,8 @@ export class App implements OnInit {
   newPlanetResourceVal = '';
   newPlanetDepositVal = '';
   newStationFacilityVal = 'Dock';
+  newBaseName = '';
+  newBaseOwner = '';
 
   // Admin login credentials
   isLoginModalOpen = signal<boolean>(false);
@@ -306,6 +308,58 @@ export class App implements OnInit {
     }
   }
 
+  async addPlanetBase(planetId: string, e: Event) {
+    e.preventDefault();
+    const planet = this.galaxyService.planets().find(p => p.id === planetId);
+    if (planet && this.newBaseName.trim() && this.newBaseOwner.trim()) {
+      if (!planet.bases) {
+        planet.bases = [];
+      }
+      const newBase: PlanetBase = {
+        name: this.newBaseName.trim(),
+        owner: this.newBaseOwner.trim(),
+        productions: []
+      };
+      planet.bases.push(newBase);
+      await this.galaxyService.dbSavePlanet(planet);
+
+      this.newBaseName = '';
+      this.newBaseOwner = '';
+    }
+  }
+
+  async removePlanetBase(planetId: string, baseIndex: number) {
+    const planet = this.galaxyService.planets().find(p => p.id === planetId);
+    if (planet && planet.bases) {
+      planet.bases.splice(baseIndex, 1);
+      await this.galaxyService.dbSavePlanet(planet);
+    }
+  }
+
+  async addBaseProduction(planetId: string, baseIndex: number, item: string, amount: number) {
+    if (!item.trim() || !amount) return;
+    const planet = this.galaxyService.planets().find(p => p.id === planetId);
+    if (planet && planet.bases && planet.bases[baseIndex]) {
+      const base = planet.bases[baseIndex];
+      if (!base.productions) {
+        base.productions = [];
+      }
+      base.productions.push({
+        item: item.trim(),
+        amountPerMinute: amount
+      });
+      await this.galaxyService.dbSavePlanet(planet);
+    }
+  }
+
+  async removeBaseProduction(planetId: string, baseIndex: number, prodIndex: number) {
+    const planet = this.galaxyService.planets().find(p => p.id === planetId);
+    if (planet && planet.bases && planet.bases[baseIndex] && planet.bases[baseIndex].productions) {
+      planet.bases[baseIndex].productions.splice(prodIndex, 1);
+      await this.galaxyService.dbSavePlanet(planet);
+    }
+  }
+
   async addPlanetResource(planetId: string, e: Event) {
     e.preventDefault();
     const planet = this.galaxyService.planets().find(p => p.id === planetId);
@@ -443,7 +497,8 @@ export class App implements OnInit {
       name: this.planetFormName.trim(),
       systemId: this.planetFormSystemId,
       resources: [],
-      deposits: []
+      deposits: [],
+      bases: []
     };
 
     await this.galaxyService.dbSavePlanet(newPlanet);
@@ -1055,7 +1110,8 @@ export class App implements OnInit {
           systemId: newSys.id,
           designation: "",
           resources: [],
-          deposits: []
+          deposits: [],
+          bases: []
         };
         await this.galaxyService.dbSavePlanet(newPlanet);
       }

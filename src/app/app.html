@@ -806,6 +806,92 @@
                 }
               </div>
 
+              <!-- Bases Section -->
+              <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-emerald);">Established Bases</label>
+
+                @if (planet.bases && planet.bases.length > 0) {
+                  <div style="display: flex; flex-direction: column; gap: 10px;">
+                    @for (base of planet.bases; track $index; let baseIndex = $index) {
+                      <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; position: relative;">
+                        <!-- Base Header -->
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+                          <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">{{ base.name }}</div>
+                          @if (galaxyService.isAdmin()) {
+                            <button type="button" (click)="removePlanetBase(planet.id, baseIndex)"
+                                    style="background: transparent; border: none; color: var(--accent-red); cursor: pointer; font-size: 0.85rem; padding: 0 4px;"
+                                    title="Delete entire base">
+                              ✕
+                            </button>
+                          }
+                        </div>
+
+                        <!-- Base Owner -->
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px;">
+                          Owner: <span style="font-weight: 500; color: var(--text-primary);">{{ base.owner }}</span>
+                        </div>
+
+                        <!-- Base Productions list -->
+                        <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+                          @for (prod of base.productions; track $index; let prodIndex = $index) {
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.02);">
+                              <span style="color: var(--text-secondary);">Produces: <strong style="color: var(--text-primary);">{{ prod.item }}</strong></span>
+                              <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 600; color: var(--accent-emerald);">{{ prod.amountPerMinute }}/min</span>
+                                @if (galaxyService.isAdmin()) {
+                                  <button type="button" (click)="removeBaseProduction(planet.id, baseIndex, prodIndex)"
+                                          style="background: transparent; border: none; color: var(--accent-red); cursor: pointer; font-size: 0.75rem; padding: 0;"
+                                          title="Remove this production">
+                                    ✕
+                                  </button>
+                                }
+                              </div>
+                            </div>
+                          } @empty {
+                            <div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic; padding: 4px 0;">No production lines configured.</div>
+                          }
+                        </div>
+
+                        <!-- Inline Add Production (Admin Only) -->
+                        @if (galaxyService.isAdmin()) {
+                          <div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 8px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center;">
+                              <input #prodItem type="text" placeholder="Produces (e.g. Iron Plate)" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;">
+                              <input #prodAmount type="number" placeholder="Qty/min" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;" min="1">
+                              <button type="button" class="btn btn-sm btn-sec" style="padding: 4px 8px; width: auto; font-size: 0.75rem;"
+                                      (click)="addBaseProduction(planet.id, baseIndex, prodItem.value, prodAmount.valueAsNumber); prodItem.value=''; prodAmount.value=''">
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No bases established on this planet.</div>
+                }
+
+                <!-- Add Base Form (Admin Only) -->
+                @if (galaxyService.isAdmin()) {
+                  <form (submit)="addPlanetBase(planet.id, $event)" style="margin-top: 14px; padding: 10px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-light); border-radius: 8px;">
+                    <div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Add New Base</div>
+
+                    <div class="form-group" style="margin-bottom: 8px;">
+                      <input type="text" name="baseName" [(ngModel)]="newBaseName" placeholder="Base Name (e.g. Outpost Alpha)" required style="padding: 6px 8px; font-size: 0.8rem;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 8px;">
+                      <input type="text" name="baseOwner" [(ngModel)]="newBaseOwner" placeholder="Owner (e.g. Player)" required style="padding: 6px 8px; font-size: 0.8rem;">
+                    </div>
+
+                    <button type="submit" class="btn btn-sm" style="width: 100%; justify-content: center; padding: 6px;">
+                      Establish Base
+                    </button>
+                  </form>
+                }
+              </div>
+
               <!-- Delete Planet Button (Admin Only) -->
               @if (galaxyService.isAdmin()) {
                 <div style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">

@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS planets (
     resources TEXT[] DEFAULT '{}', -- Array of resource names: ['Iron', 'Copper']
     deposits TEXT[] DEFAULT '{}', -- Array of deposits: ['Deposit_Iron']
     stations JSONB DEFAULT '[]'::jsonb, -- Array of space stations
+    bases JSONB DEFAULT '[]'::jsonb, -- Array of planetary bases
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -151,4 +152,9 @@ CREATE INDEX IF NOT EXISTS idx_systems_coordinates ON systems(x, y);
 CREATE INDEX IF NOT EXISTS idx_planets_system_id ON planets(system_id);
 CREATE INDEX IF NOT EXISTS idx_connections_from_to ON connections(from_system_id, to_system_id);
 CREATE INDEX IF NOT EXISTS idx_stations_system_id ON stations(system_id);
+
+
+-- Migration/Upgrade support:
+ALTER TABLE planets ADD COLUMN IF NOT EXISTS bases JSONB DEFAULT '[]'::jsonb;
+
 

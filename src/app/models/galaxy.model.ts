@@ -22,6 +22,17 @@ export interface StarSystem {
   y: number;
 }
 
+export interface BaseProduction {
+  item: string;
+  amountPerMinute: number;
+}
+
+export interface PlanetBase {
+  name: string;
+  owner: string;
+  productions: BaseProduction[];
+}
+
 export interface Planet {
   id: string;
   name: string;
@@ -29,6 +40,7 @@ export interface Planet {
   designation?: string;
   resources: string[];
   deposits: string[];
+  bases?: PlanetBase[];
 }
 
 export interface SpaceStation {

@@ -229,14 +229,7 @@ export class GalaxyService {
         // 3. Load Planets
         const { data: planetData, error: pErr } = await this.supabaseClient.from('planets').select('*');
         if (pErr) throw pErr;
-        const loadedPlanets = (planetData || []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          systemId: p.system_id,
-          designation: p.designation,
-          resources: p.resources || [],
-          deposits: p.deposits || []
-        }));
+        const loadedPlanets = this.migratePlanets(planetData || []);
         this.planets.set(loadedPlanets);
 
         // 4. Load Stations
@@ -282,7 +275,7 @@ export class GalaxyService {
       this.sectors.set(JSON.parse(localSectors));
       this.systems.set(JSON.parse(localSystems));
       this.connections.set(JSON.parse(localConns));
-      this.planets.set(localPlanets ? JSON.parse(localPlanets) : []);
+      this.planets.set(this.migratePlanets(localPlanets ? JSON.parse(localPlanets) : []));
       this.stations.set(localStations ? JSON.parse(localStations) : []);
     } else {
       this.sectors.set([]);
@@ -421,7 +414,8 @@ export class GalaxyService {
         system_id: planet.systemId,
         designation: planet.designation,
         resources: planet.resources,
-        deposits: planet.deposits
+        deposits: planet.deposits,
+        bases: JSON.stringify(planet.bases || [])
       });
       if (error) {
         console.error(error);
@@ -795,5 +789,34 @@ export class GalaxyService {
     try {
       localStorage.removeItem(key);
     } catch (e) {}
+  }
+
+  private migratePlanets(planetList: any[]): Planet[] {
+    return (planetList || []).map((p: any) => {
+      let bases = typeof p.bases === 'string' ? JSON.parse(p.bases) : (p.bases || []);
+      bases = bases.map((base: any) => {
+        if (base.produced && !base.productions) {
+          base.productions = [{
+            item: base.produced,
+            amountPerMinute: base.amountPerMinute || 0
+          }];
+          delete base.produced;
+          delete base.amountPerMinute;
+        }
+        if (!base.productions) {
+          base.productions = [];
+        }
+        return base;
+      });
+      return {
+        id: p.id,
+        name: p.name,
+        systemId: p.system_id || p.systemId,
+        designation: p.designation,
+        resources: p.resources || [],
+        deposits: p.deposits || [],
+        bases: bases
+      };
+    });
   }
 }
