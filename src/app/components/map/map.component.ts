@@ -354,6 +354,13 @@ export class MapComponent {
     const fromSys = systems.find(s => s.id === conn.from_system_id);
     const toSys = systems.find(s => s.id === conn.to_system_id);
     if (fromSys && toSys) {
+      const route = this.galaxyService.calculatedRoute();
+      if (route && route.steps) {
+        const isReverse = route.steps.some(s => s.fromId === conn.to_system_id && s.toId === conn.from_system_id);
+        if (isReverse) {
+          return { x1: toSys.x, y1: toSys.y, x2: fromSys.x, y2: fromSys.y };
+        }
+      }
       return { x1: fromSys.x, y1: fromSys.y, x2: toSys.x, y2: toSys.y };
     }
     return null;
