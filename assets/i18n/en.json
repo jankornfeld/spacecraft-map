@@ -250,5 +250,11 @@
     "iron": "iron",
     "sandstone": "sandstone",
     "aluminum": "aluminum"
+  },
+  "modules": {
+    "shipyard": "Shipyard",
+    "miningbureau": "Mining Bureau",
+    "laboratory": "Laboratory",
+    "marketplace": "Marketplace"
   }
 }
