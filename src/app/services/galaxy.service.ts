@@ -9,18 +9,12 @@ import { Sector, StarSystem, Planet, SpaceStation, Connection, CalculatedRoute, 
 export class GalaxyService {
   // Constants
   readonly ALL_RESOURCES = [
-    "Iron", "Copper", "Coal", "Quartz", "Silicate", "Aluminum", "Calcite",
-    "Aquamarine", "Feldspar", "Titanium", "Gold", "Silver", "Lithium",
-    "Uranium", "Sulfur", "Water"
+    "copperstone", "purebrass", "ironstone", "pureiron", "sandstonehill", "siderit", "grayquarz", "coallump", "graphit",
+    "chalkopyrit", "chalkosin", "chalcedonycrust", "sulfurstone", "pureelmerium", "whitefeldsparhill", "watergysir"
   ];
 
   readonly ALL_DEPOSITS = [
-    "Iron Deposit", "Dense Iron Deposit", "Copper Deposit", "Dense Copper Deposit",
-    "Coal Deposit", "Dense Coal Deposit", "Quartz Deposit", "Dense Quartz Deposit",
-    "Silicate Deposit", "Aluminum Deposit", "Dense Aluminum Deposit", "Calcite Deposit",
-    "Aquamarine Deposit", "Feldspar Deposit", "Titanium Deposit", "Dense Titanium Deposit",
-    "Gold Deposit", "Dense Gold Deposit", "Silver Deposit", "Lithium Deposit",
-    "Uranium Deposit", "Sulfur Deposit", "Water Geyser", "Sulfuric Acid Geyser"
+    "copper", "iron", "sandstone", "aluminum"
   ];
 
   // Supabase Client
@@ -33,7 +27,7 @@ export class GalaxyService {
   // Active credentials signals
   activeUrl = signal<string>('');
   activeKey = signal<string>('');
-  
+
   // Database status
   isDbConnected = signal<boolean>(false);
   isAdmin = signal<boolean>(false);
@@ -60,7 +54,7 @@ export class GalaxyService {
   // Search and Filters
   searchQuery = signal<string>('');
   resourceFilter = signal<string>('');
-  
+
   // Sector display
   hiddenSectorIds = signal<Set<string>>(new Set());
 
@@ -75,7 +69,7 @@ export class GalaxyService {
 
   constructor() {
     this.initDb();
-    
+
     // Automatically recalculate map boundaries when systems change
     effect(() => {
       this.calculateBounds();
@@ -86,7 +80,7 @@ export class GalaxyService {
   showToast(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') {
     const id = ++this.toastIdCounter;
     this.toasts.update(t => [...t, { id, message, type }]);
-    
+
     setTimeout(() => {
       this.removeToast(id);
     }, 4000);
@@ -100,7 +94,7 @@ export class GalaxyService {
   private initDb() {
     const cachedUrl = this.safeGetItem('spacecraft_supabase_url');
     const cachedKey = this.safeGetItem('spacecraft_supabase_key');
-    
+
     if (cachedUrl && cachedKey) {
       this.connectToSupabase(cachedUrl, cachedKey);
     } else if (cachedUrl === null && cachedKey === null) {
@@ -126,7 +120,7 @@ export class GalaxyService {
         this.connectionStatusClass.set('badge badge-emerald');
         this.activeUrl.set(url);
         this.activeKey.set(key);
-        
+
         this.safeSetItem('spacecraft_supabase_url', url);
         this.safeSetItem('spacecraft_supabase_key', key);
         this.showToast(this.translate.instant('toasts.db_connected'), 'success');
@@ -571,7 +565,7 @@ export class GalaxyService {
     this.planets.set([]);
     this.stations.set([]);
     this.connections.set([]);
-    
+
     this.selectedSystemId.set(null);
     this.selectedPlanetId.set(null);
     this.selectedStationId.set(null);
@@ -599,21 +593,21 @@ export class GalaxyService {
   }
 
   // --- COMPUTED / SELECTIVE DATA ---
-  
+
   // Computed systems filtered by search query and resource filter
   filteredSystems = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const resFilter = this.resourceFilter();
     const allSystems = this.systems();
     const allPlanets = this.planets();
-    
+
     return allSystems.filter(sys => {
-      const nameMatch = sys.name.toLowerCase().includes(query) || 
+      const nameMatch = sys.name.toLowerCase().includes(query) ||
         (sys.designation && sys.designation.toLowerCase().includes(query));
-        
+
       const sysPlanets = allPlanets.filter(p => p.systemId === sys.id);
       const resourceMatch = !resFilter || sysPlanets.some(p => p.resources && p.resources.includes(resFilter));
-      
+
       return nameMatch && resourceMatch;
     });
   });
@@ -657,7 +651,7 @@ export class GalaxyService {
   calculateRoutePath() {
     const startId = this.routeStartSystemId();
     const endId = this.routeEndSystemId();
-    
+
     if (!startId || !endId) {
       this.calculatedRoute.set(null);
       return;

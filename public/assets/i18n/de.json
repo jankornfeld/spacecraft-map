@@ -219,5 +219,29 @@
     "delete_station": "Sind Sie sicher, dass Sie die Raumstation {{name}} löschen möchten?",
     "delete_system": "Sternensystem {{name}} und alle zugehörigen Planeten/Verbindungen löschen?",
     "wipe_db": "🚨 WARNUNG: Sind Sie sicher, dass Sie ALLE benutzerdefinierten Sektoren, Systeme und FTL-Pfade löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+  },
+  "resources": {
+    "copperstone": "Kupferstein",
+    "purebrass": "Messingaufschluss",
+    "ironstone": "Eisenstein",
+    "pureiron": "Eisenaufschluss",
+    "sandstonehill": "Sandsteinhügel",
+    "siderit": "Siderit",
+    "grayquarz": "Grauquarz",
+    "coallump": "Kohleklumpen",
+    "graphit": "Graphit",
+    "chalkopyrit": "Chalkopyrit",
+    "chalkosin": "Chalkosin",
+    "chalcedonycrust": "Chalzedonkruste",
+    "sulfurstone": "Schwefelstein",
+    "pureelmerium": "Muldenaufschluss",
+    "whitefeldsparhill": "Weißer Feldspathügel",
+    "watergysir": "Wassergysir"
+  },
+  "deposits": {
+    "copper": "Kupferlager",
+    "iron": "Eisenlager",
+    "sandstone": "Sandsteinlager",
+    "aluminum": "Aluminiumlager"
   }
 }

@@ -219,5 +219,29 @@
     "delete_station": "Are you sure you want to delete space station {name}?",
     "delete_system": "Delete star system {name} and its planets/connections?",
     "wipe_db": "🚨 WARNING: Are you sure you want to delete ALL custom sectors, systems, and FTL pathways? This action cannot be undone."
+  },
+  "resources": {
+    "copperstone": "copperstone",
+    "purebrass": "purebrass",
+    "ironstone": "ironstone",
+    "pureiron": "pureiron",
+    "sandstonehill": "sandstonehill",
+    "siderit": "siderit",
+    "grayquarz": "grayquarz",
+    "coallump": "coallump",
+    "graphit": "graphit",
+    "chalkopyrit": "chalkopyrit",
+    "chalkosin": "chalkosin",
+    "chalcedonycrust": "chalcedonycrust",
+    "sulfurstone": "sulfurstone",
+    "pureelmerium": "pureelmerium",
+    "whitefeldsparhill": "whitefeldsparhill",
+    "watergysir": "watergysir"
+  },
+  "deposits": {
+    "copper": "copper",
+    "iron": "iron",
+    "sandstone": "sandstone",
+    "aluminum": "aluminum"
   }
 }

@@ -70,7 +70,7 @@
                   (change)="onResourceFilterChange($event)">
             <option value="">{{ 'search.all_resources' | translate }}</option>
             @for (res of allUniqueResources(); track res) {
-              <option [value]="res">{{ res }}</option>
+              <option [value]="res">{{ 'resources.' + res | translate }}</option>
             }
           </select>
         </div>
@@ -729,7 +729,7 @@
                 <div class="chips-container">
                   @for (r of planet.resources; track r) {
                     <span class="chip">
-                      {{ r }}
+                      {{ 'resources.' + r | translate }}
                       @if (galaxyService.isAdmin()) {
                         <button type="button" (click)="removePlanetResource(planet.id, r)">✕</button>
                       }
@@ -750,7 +750,7 @@
                             style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
                       <option value="">{{ 'details.select_resource' | translate }}</option>
                       @for (res of galaxyService.ALL_RESOURCES; track res) {
-                        <option [value]="res">{{ res }}</option>
+                        <option [value]="res">{{ 'resources.' + res | translate }}</option>
                       }
                     </select>
                     <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
@@ -764,7 +764,7 @@
                 <div class="chips-container">
                   @for (d of planet.deposits; track d) {
                     <span class="chip">
-                      <code>{{ d }}</code>
+                      <code>{{ 'deposits.' + d | translate }}</code>
                       @if (galaxyService.isAdmin()) {
                         <button type="button" (click)="removePlanetDeposit(planet.id, d)">✕</button>
                       }
@@ -785,7 +785,7 @@
                             style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
                       <option value="">{{ 'details.select_deposit' | translate }}</option>
                       @for (dep of galaxyService.ALL_DEPOSITS; track dep) {
-                        <option [value]="dep">{{ dep }}</option>
+                        <option [value]="dep">{{ 'deposits.' + dep | translate }}</option>
                       }
                     </select>
                     <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
