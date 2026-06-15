@@ -710,3 +710,14 @@ body.admin-mode form.admin-only {
   color: white;
   box-shadow: 0 0 10px var(--accent-blue-glow);
 }
+
+/* Custom Angular Tags Layout Fixes */
+app-map, app-detail-panel {
+  display: contents;
+}
+
+app-search-tab, app-sectors-tab, app-route-tab, app-admin-tab, app-settings-tab {
+  display: block;
+  width: 100%;
+}
+

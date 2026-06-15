@@ -1,0 +1,25 @@
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+  <h3 style="font-family: var(--font-mono); font-size: 0.95rem;">{{ 'sectors_panel.title' | translate }}</h3>
+  <button id="toggle-all-sectors-btn" class="btn btn-sec btn-sm" (click)="toggleAllSectors()">{{ 'sectors_panel.toggle_all' | translate }}</button>
+</div>
+<div id="sectors-list" style="display: flex; flex-direction: column; gap: 10px;">
+  @for (sec of galaxyService.sectors(); track sec.id) {
+    <div class="result-item sector-item" [style.borderLeft]="'4px solid ' + sec.color">
+      <div class="sector-item-info" (click)="flyToCentroid(sec)">
+        <div class="result-header">
+          <span>{{ sec.name }}</span>
+        </div>
+        <div class="result-subtitle">{{ 'sectors_panel.systems_count' | translate: { count: galaxyService.getSectorSystemCount(sec.id) } }}</div>
+      </div>
+      <div class="sector-item-toggle">
+        <input type="checkbox" [checked]="galaxyService.isSectorVisible(sec.id)"
+               (change)="toggleSectorVisibility(sec.id, $event)">
+      </div>
+    </div>
+  } @empty {
+    <div
+      style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">
+      {{ 'sectors_panel.no_sectors' | translate }}
+    </div>
+  }
+</div>

@@ -1,0 +1,45 @@
+<div class="form-group">
+  <label for="search-input">{{ 'search.title' | translate }}</label>
+  <input type="text" id="search-input" [value]="galaxyService.searchQuery()" (input)="onSearchInput($event)"
+         [placeholder]="'search.placeholder' | translate">
+</div>
+<div class="form-group">
+  <label for="resource-filter">{{ 'search.filter_resource' | translate }}</label>
+  <select id="resource-filter" [value]="galaxyService.resourceFilter()"
+          (change)="onResourceFilterChange($event)">
+    <option value="">{{ 'search.all_resources' | translate }}</option>
+    @for (res of galaxyService.allUniqueResources(); track res) {
+      <option [value]="res">{{ 'resources.' + res | translate }}</option>
+    }
+  </select>
+</div>
+
+<h3
+  style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; margin-top: 10px;">
+  {{ 'search.results_count' | translate: { count: galaxyService.filteredSystems().length } }}
+</h3>
+<div id="search-results-list" class="search-results">
+  @for (sys of galaxyService.filteredSystems(); track sys.id) {
+    <div class="result-item" [class.active]="galaxyService.selectedSystemId() === sys.id"
+         (click)="selectSystem(sys.id)">
+      <div class="result-header">
+        <span>{{ sys.name }}</span>
+        <span class="badge" [class]="'badge-' + getStarColorClass(sys.starColor)"
+              [style.background-color]="getStarBadgeBg(sys.starColor)"
+              [style.color]="getStarBadgeColor(sys.starColor)"
+              [style.border-color]="getStarBadgeBorder(sys.starColor)">
+          {{ sys.starColor && sys.starColor.startsWith('#') ? ('creator.star_color' | translate) : sys.starColor }}
+        </span>
+      </div>
+      <div class="result-subtitle">
+        {{ 'tabs.sectors' | translate }}: {{ galaxyService.getSectorName(sys.sectorId) }} •
+        {{ 'creator.designation' | translate }}: {{ sys.designation || ('details.no_designation' | translate) }}
+      </div>
+    </div>
+  } @empty {
+    <div
+      style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">
+      {{ 'search.no_systems' | translate }}
+    </div>
+  }
+</div>

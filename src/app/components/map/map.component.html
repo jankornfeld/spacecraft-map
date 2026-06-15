@@ -1,0 +1,119 @@
+<main id="map-viewport-container"
+      (mousedown)="onMapMouseDown($event)"
+      (mouseup)="onMapMouseUp($event)"
+      (wheel)="onMapWheel($event)"
+      [style.cursor]="mapCursor()">
+  <svg id="map-viewport" xmlns="http://www.w3.org/2000/svg">
+    <!-- Zoom/Pan g-group contains the active layers -->
+    <g id="map-transform-group"
+       [attr.transform]="'translate(' + translateX + ', ' + translateY + ') scale(' + scale + ')'">
+
+      <!-- Grid Layer -->
+      <g id="grid-layer">
+        @if (showGrid()) {
+          @for (line of gridLines(); track $index) {
+            <line [attr.x1]="line.x1" [attr.y1]="line.y1" [attr.x2]="line.x2" [attr.y2]="line.y2"
+                  class="grid-line"></line>
+          }
+        }
+      </g>
+
+      <!-- Sectors Layer -->
+      <g id="sectors-layer">
+        @if (showSectors()) {
+          @for (sec of galaxyService.sectors(); track sec.id) {
+            @if (sec.polygon && sec.polygon.length >= 3 && isSectorVisible(sec.id)) {
+              <polygon [attr.points]="getPolygonPointsStr(sec.polygon)"
+                       class="sector-polygon"
+                       [attr.stroke]="sec.color"
+                       [attr.fill]="sec.color"
+                       [attr.id]="'svg-' + sec.id"></polygon>
+            }
+          }
+        }
+      </g>
+
+      <!-- Draft Sector Layer -->
+      <g id="draft-sector-layer">
+        @if (isSectorPinMode() && tempSectorPoints().length > 0) {
+          @if (tempSectorPoints().length >= 2) {
+            @if (tempSectorPoints().length >= 3) {
+              <polygon [attr.points]="getPolygonPointsStr(tempSectorPoints())" [attr.stroke]="sectorColorInput()"
+                       stroke-width="2.0" [attr.fill]="sectorColorInput()" fill-opacity="0.15"
+                       stroke-dasharray="4 4"></polygon>
+            } @else {
+              <polyline [attr.points]="getPolygonPointsStr(tempSectorPoints())" [attr.stroke]="sectorColorInput()"
+                        stroke-width="2.0" stroke-dasharray="4 4"></polyline>
+            }
+          }
+          @for (pt of tempSectorPoints(); track $index) {
+            <circle [attr.cx]="pt[0]" [attr.cy]="pt[1]" r="5" [attr.fill]="sectorColorInput()" stroke="#ffffff"
+                    stroke-width="1.5"></circle>
+            <text [attr.x]="pt[0] + 8" [attr.y]="pt[1] + 4" fill="#ffffff" font-size="10px"
+                  font-family="monospace">{{ $index + 1 }}
+            </text>
+          }
+        }
+      </g>
+
+      <!-- Lanes Layer -->
+      <g id="lanes-layer">
+        @for (conn of galaxyService.connections(); track $index) {
+          @if (getLaneCoords(conn); as coords) {
+            <line [attr.x1]="coords.x1" [attr.y1]="coords.y1" [attr.x2]="coords.x2" [attr.y2]="coords.y2"
+                  class="connection-lane"
+                  [class.active-path]="isLaneActivePath(conn.from_system_id, conn.to_system_id)"
+                  [attr.id]="'lane-' + conn.from_system_id + '-' + conn.to_system_id"></line>
+          }
+        }
+      </g>
+
+      <!-- Stars Layer -->
+      <g id="stars-layer">
+        @for (sys of galaxyService.systems(); track sys.id) {
+          <g class="system-node" [attr.id]="'node-' + sys.id" (click)="onNodeClick(sys.id, $event)">
+            <!-- Selection ring -->
+            @if (galaxyService.selectedSystemId() === sys.id) {
+              <circle [attr.cx]="sys.x" [attr.cy]="sys.y" [attr.r]="starSize() / 2 + 3" fill="none"
+                      stroke="var(--accent-blue)" stroke-width="3.0"></circle>
+            }
+            <!-- Star node -->
+            <circle [attr.cx]="sys.x" [attr.cy]="sys.y" [attr.r]="starSize() / 2"
+                    [attr.fill]="getSystemNodeColor(sys)" stroke="#ffffff" stroke-width="1.5"></circle>
+          </g>
+        }
+      </g>
+
+      <!-- Labels Layer -->
+      <g id="labels-layer">
+        <!-- Sector labels -->
+        @if (showSectors()) {
+          @for (sec of galaxyService.sectors(); track sec.id) {
+            @if (sec.centroid && isSectorVisible(sec.id)) {
+              <text [attr.x]="sec.centroid.x" [attr.y]="sec.centroid.y" class="sector-label" text-anchor="middle"
+                    [attr.fill]="sec.color">
+                {{ sec.name.toUpperCase() }}
+              </text>
+            }
+          }
+        }
+        <!-- Planet labels -->
+        @if (showLabels()) {
+          @for (sys of galaxyService.systems(); track sys.id) {
+            <text [attr.x]="sys.x" [attr.y]="sys.y - (starSize() / 2) - 6" class="system-label" text-anchor="middle"
+                  [attr.id]="'label-' + sys.id">
+              {{ sys.name }}
+            </text>
+          }
+        }
+      </g>
+    </g>
+  </svg>
+
+  <!-- Floating Map Zoom Controls HUD -->
+  <div id="map-controls" class="hud-card">
+    <button class="control-btn" title="Zoom In" (click)="zoomIn()">+</button>
+    <button class="control-btn" title="Zoom Out" (click)="zoomOut()">−</button>
+    <button class="control-btn" title="Recenter Map" (click)="recenterMap()">⌖</button>
+  </div>
+</main>

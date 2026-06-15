@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { TranslateService } from '@ngx-translate/core';
-import { Sector, StarSystem, Planet, SpaceStation, Connection, CalculatedRoute, CalculatedRouteStep } from '../models/galaxy.model';
+import { Sector, StarSystem, Planet, SpaceStation, Connection, CalculatedRoute, CalculatedRouteStep, PlanetBase } from '../models/galaxy.model';
 
 @Injectable({
   providedIn: 'root'
@@ -646,6 +646,187 @@ export class GalaxyService {
     if (!activeStationId) return null;
     return this.stations().find(s => s.id === activeStationId) || null;
   });
+
+  allUniqueResources = computed(() => {
+    const list = this.planets();
+    const resources = new Set<string>();
+    list.forEach(p => {
+      if (p.resources) {
+        p.resources.forEach(r => resources.add(r));
+      }
+    });
+    return Array.from(resources).sort();
+  });
+
+  sortedSystems = computed(() => {
+    return [...this.systems()].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  selectSystem(sysId: string) {
+    this.selectedSystemId.set(sysId);
+
+    // Clear sub-selections
+    const sysPlanets = this.selectedSystemPlanets();
+    if (sysPlanets.length > 0) {
+      this.selectedPlanetId.set(sysPlanets[0].id);
+    } else {
+      this.selectedPlanetId.set(null);
+    }
+
+    const sysStations = this.selectedSystemStations();
+    if (sysStations.length > 0) {
+      this.selectedStationId.set(sysStations[0].id);
+    } else {
+      this.selectedStationId.set(null);
+    }
+  }
+
+  async removePlanetResource(planetId: string, res: string) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet) {
+      planet.resources = planet.resources.filter(r => r !== res);
+      await this.dbSavePlanet(planet);
+    }
+  }
+
+  async removePlanetDeposit(planetId: string, dep: string) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet) {
+      planet.deposits = planet.deposits.filter(d => d !== dep);
+      await this.dbSavePlanet(planet);
+    }
+  }
+
+  async removeStationFacility(stationId: string, facilityType: string) {
+    const station = this.stations().find(s => s.id === stationId);
+    if (station) {
+      station.facilities = station.facilities.filter(f => f.type !== facilityType);
+      await this.dbSaveStation(station);
+    }
+  }
+
+  async addPlanetBase(planetId: string, name: string, owner: string) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet && name.trim() && owner.trim()) {
+      if (!planet.bases) {
+        planet.bases = [];
+      }
+      const newBase: PlanetBase = {
+        name: name.trim(),
+        owner: owner.trim(),
+        productions: []
+      };
+      planet.bases.push(newBase);
+      await this.dbSavePlanet(planet);
+    }
+  }
+
+  async removePlanetBase(planetId: string, baseIndex: number) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet && planet.bases) {
+      planet.bases.splice(baseIndex, 1);
+      await this.dbSavePlanet(planet);
+    }
+  }
+
+  async addBaseProduction(planetId: string, baseIndex: number, item: string, amount: number) {
+    if (!item.trim() || !amount) return;
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet && planet.bases && planet.bases[baseIndex]) {
+      const base = planet.bases[baseIndex];
+      if (!base.productions) {
+        base.productions = [];
+      }
+      base.productions.push({
+        item: item.trim(),
+        amountPerMinute: amount
+      });
+      await this.dbSavePlanet(planet);
+    }
+  }
+
+  async removeBaseProduction(planetId: string, baseIndex: number, prodIndex: number) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet && planet.bases && planet.bases[baseIndex] && planet.bases[baseIndex].productions) {
+      planet.bases[baseIndex].productions.splice(prodIndex, 1);
+      await this.dbSavePlanet(planet);
+    }
+  }
+
+  async addPlanetResource(planetId: string, resourceVal: string) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet && resourceVal) {
+      if (!planet.resources.includes(resourceVal)) {
+        planet.resources.push(resourceVal);
+        await this.dbSavePlanet(planet);
+      }
+    }
+  }
+
+  async addPlanetDeposit(planetId: string, depositVal: string) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet && depositVal) {
+      if (!planet.deposits.includes(depositVal)) {
+        planet.deposits.push(depositVal);
+        await this.dbSavePlanet(planet);
+      }
+    }
+  }
+
+  async addStationFacility(stationId: string, facilityVal: string) {
+    const station = this.stations().find(s => s.id === stationId);
+    if (station && facilityVal) {
+      if (!station.facilities) station.facilities = [];
+      if (!station.facilities.some(f => f.type === facilityVal)) {
+        station.facilities.push({ type: facilityVal });
+        await this.dbSaveStation(station);
+      } else {
+        this.showToast(this.translate.instant('toasts.facility_exists'), "warning");
+      }
+    }
+  }
+
+  getSectorName(sectorId?: string): string {
+    if (!sectorId) return 'Unknown Sector';
+    const sector = this.sectors().find(s => s.id === sectorId);
+    return sector ? sector.name : 'Unknown Sector';
+  }
+
+  getSectorSystemCount(sectorId: string): number {
+    return this.systems().filter(s => s.sectorId === sectorId).length;
+  }
+
+  isSectorVisible(sectorId: string): boolean {
+    return !this.hiddenSectorIds().has(sectorId);
+  }
+
+  toggleSectorVisibility(sectorId: string, visible: boolean) {
+    this.hiddenSectorIds.update(hidden => {
+      const copy = new Set(hidden);
+      if (visible) {
+        copy.delete(sectorId);
+      } else {
+        copy.add(sectorId);
+      }
+      return copy;
+    });
+  }
+
+  toggleAllSectors() {
+    const sectors = this.sectors();
+    if (sectors.length === 0) return;
+
+    const hidden = this.hiddenSectorIds();
+    const allVisible = sectors.every(sec => !hidden.has(sec.id));
+
+    if (allVisible) {
+      this.hiddenSectorIds.set(new Set(sectors.map(sec => sec.id)));
+      this.showToast(this.translate.instant('toasts.hidden_sectors'));
+    } else {
+      this.hiddenSectorIds.set(new Set());
+      this.showToast(this.translate.instant('toasts.showing_sectors'));
+    }
+  }
 
   // --- DIJKSTRA SHORTPATH ROUTING ---
   calculateRoutePath() {

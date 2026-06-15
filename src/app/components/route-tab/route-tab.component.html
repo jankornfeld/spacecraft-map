@@ -1,0 +1,47 @@
+<div class="form-group">
+  <label for="route-start-select">{{ 'route_planner.start_system' | translate }}</label>
+  <select id="route-start-select" [value]="galaxyService.routeStartSystemId() || ''"
+          (change)="onRouteStartChange($event)">
+    <option value="">{{ 'route_planner.select_origin' | translate }}</option>
+    @for (sys of galaxyService.sortedSystems(); track sys.id) {
+      <option [value]="sys.id">{{ sys.name }}</option>
+    }
+  </select>
+</div>
+<div class="form-group">
+  <label for="route-end-select">{{ 'route_planner.end_system' | translate }}</label>
+  <select id="route-end-select" [value]="galaxyService.routeEndSystemId() || ''"
+          (change)="onRouteEndChange($event)">
+    <option value="">{{ 'route_planner.select_destination' | translate }}</option>
+    @for (sys of galaxyService.sortedSystems(); track sys.id) {
+      <option [value]="sys.id">{{ sys.name }}</option>
+    }
+  </select>
+</div>
+<div style="display: flex; gap: 10px;">
+  <button id="calculate-route-btn" class="btn" (click)="galaxyService.calculateRoutePath()">{{ 'route_planner.calculate_btn' | translate }}</button>
+  <button id="clear-route-btn" class="btn btn-sec" (click)="clearRoute()">{{ 'route_planner.clear_btn' | translate }}</button>
+</div>
+
+@if (galaxyService.calculatedRoute(); as route) {
+  <div id="route-details"
+       style="display: block; margin-top: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-light); padding: 14px; border-radius: 8px;">
+    <h4
+       style="font-family: var(--font-mono); color: var(--accent-emerald); font-size: 0.95rem; margin-bottom: 8px;">
+      {{ 'route_planner.path_calculated' | translate }}
+    </h4>
+    <p style="font-size: 0.85rem; margin-bottom: 6px;">{{ 'route_planner.total_jumps' | translate: { count: route.jumps } }}</p>
+    <p style="font-size: 0.85rem; margin-bottom: 12px;">{{ 'route_planner.total_cost' | translate: { count: route.cost } }}</p>
+
+    <h5
+      style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">
+      {{ 'route_planner.navigation_steps' | translate }}
+    </h5>
+    <ol id="route-steps-list"
+        style="padding-left: 16px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
+      @for (step of route.steps; track $index) {
+        <li>{{ 'route_planner.jump_step' | translate: { to: step.toName, from: step.fromName } }}</li>
+      }
+    </ol>
+  </div>
+}

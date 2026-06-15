@@ -1,0 +1,240 @@
+@if (!galaxyService.isAdmin()) {
+  <!-- Locked view -->
+  <div id="creator-locked-message" style="text-align: center; padding: 40px 10px;">
+    <span style="font-size: 3rem;">🔒</span>
+    <h3 style="font-family: var(--font-mono); margin-top: 10px;">{{ 'admin.locked_title' | translate }}</h3>
+    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">
+      {{ 'admin.locked_desc' | translate }}
+    </p>
+  </div>
+} @else {
+  <!-- Creator Panels -->
+  <div id="creator-tools-panel" style="display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- 1. Create Sector -->
+    <div
+      style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+      <h3
+        style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">
+        {{ 'creator.create_sector' | translate }}
+      </h3>
+      <form (submit)="createSector($event)">
+        <div class="form-group">
+          <label for="sector-id-input">{{ 'creator.sector_id' | translate }}</label>
+          <input type="text" id="sector-id-input" name="sectorId" [(ngModel)]="sectorFormId"
+                 [placeholder]="'creator.sector_id_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="sector-name-input">{{ 'creator.sector_name' | translate }}</label>
+          <input type="text" id="sector-name-input" name="sectorName" [(ngModel)]="sectorFormName"
+                 [placeholder]="'creator.sector_name_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="sector-color-input">{{ 'creator.sector_color' | translate }}</label>
+          <input type="color" id="sector-color-input" name="sectorColor" [(ngModel)]="sectorColorInput"
+                 style="height: 40px; padding: 2px; cursor: pointer;">
+        </div>
+        <div class="form-group">
+          <label for="sector-polygon-input">{{ 'creator.sector_coords' | translate }}</label>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <button type="button" class="btn btn-sec btn-sm" style="flex: 2;" (click)="toggleSectorPinMode.emit()">
+              📍 {{ (isSectorPinMode() ? 'creator.stop_pinning' : 'creator.pin_points') | translate }}
+            </button>
+            @if (isSectorPinMode() && tempSectorPointsLength() > 0) {
+              <button type="button" class="btn btn-sec btn-sm" style="flex: 1;" (click)="undoSectorPoint.emit()">
+                {{ 'creator.undo' | translate }}
+              </button>
+              <button type="button" class="btn btn-sec btn-sm" style="flex: 1; color: var(--accent-red);"
+                      (click)="clearSectorPoints.emit()">{{ 'creator.clear' | translate }}
+              </button>
+            }
+          </div>
+          <textarea id="sector-polygon-input" name="sectorPolygon" [(ngModel)]="sectorPolygonInput" rows="3"
+                    placeholder="[[X1,Y1],[X2,Y2],...]" required></textarea>
+          <span style="font-size: 0.75rem; color: var(--text-muted)">{{ 'creator.coords_desc' | translate }}</span>
+        </div>
+        <button type="submit" class="btn btn-sm">{{ 'creator.save_sector' | translate }}</button>
+      </form>
+    </div>
+
+    <!-- 2. Create Star System -->
+    <div
+      style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+      <h3
+        style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">
+        {{ 'creator.create_system' | translate }}
+      </h3>
+      <div style="margin-bottom: 14px;">
+        <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="togglePlaceMode.emit()">📍 {{ 'creator.select_coords_btn' | translate }}
+        </button>
+      </div>
+      <form (submit)="createSystem($event)">
+        <div class="form-group">
+          <label for="system-id-input">{{ 'creator.system_id' | translate }}</label>
+          <input type="text" id="system-id-input" name="systemId" [(ngModel)]="systemFormId"
+                 [placeholder]="'creator.system_id_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="system-name-input">{{ 'creator.system_name' | translate }}</label>
+          <input type="text" id="system-name-input" name="systemName" [(ngModel)]="systemFormName"
+                 [placeholder]="'creator.system_name_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="system-designation-input">{{ 'creator.designation' | translate }}</label>
+          <input type="text" id="system-designation-input" name="systemDesignation"
+                 [(ngModel)]="systemFormDesignation" [placeholder]="'creator.designation_placeholder' | translate">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label for="system-x-input">{{ 'creator.coord_x' | translate }}</label>
+            <input type="number" step="any" id="system-x-input" name="systemX" [(ngModel)]="systemFormX"
+                   required>
+          </div>
+          <div class="form-group">
+            <label for="system-y-input">{{ 'creator.coord_y' | translate }}</label>
+            <input type="number" step="any" id="system-y-input" name="systemY" [(ngModel)]="systemFormY"
+                   required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="system-sector-select">{{ 'creator.assign_sector' | translate }}</label>
+          <select id="system-sector-select" name="systemSectorId" [(ngModel)]="systemFormSectorId" required>
+            <option value="">{{ 'creator.select_sector' | translate }}</option>
+            @for (s of galaxyService.sectors(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="system-star-color-input">{{ 'creator.star_color' | translate }}</label>
+          <input type="color" id="system-star-color-input" name="systemStarColor"
+                 [(ngModel)]="systemFormStarColor" style="height: 40px; padding: 2px; cursor: pointer;">
+        </div>
+        <button type="submit" class="btn btn-sm">{{ 'creator.save_system' | translate }}</button>
+      </form>
+    </div>
+
+    <!-- 3. Create Planet -->
+    <div
+      style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+      <h3
+        style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">
+        {{ 'creator.create_planet' | translate }}
+      </h3>
+      <form (submit)="createPlanet($event)">
+        <div class="form-group">
+          <label for="planet-id-input">{{ 'creator.planet_id' | translate }}</label>
+          <input type="text" id="planet-id-input" name="planetId" [(ngModel)]="planetFormId"
+                 [placeholder]="'creator.planet_id_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="planet-name-input">{{ 'creator.planet_name' | translate }}</label>
+          <input type="text" id="planet-name-input" name="planetName" [(ngModel)]="planetFormName"
+                 [placeholder]="'creator.planet_name_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="planet-system-select">{{ 'creator.assign_system' | translate }}</label>
+          <select id="planet-system-select" name="planetSystemId" [(ngModel)]="planetFormSystemId" required>
+            <option value="">{{ 'creator.select_system' | translate }}</option>
+            @for (s of galaxyService.sortedSystems(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm">{{ 'creator.save_planet' | translate }}</button>
+      </form>
+    </div>
+
+    <!-- 3b. Create Space Station -->
+    <div
+      style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+      <h3
+        style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">
+        {{ 'creator.create_station' | translate }}
+      </h3>
+      <form (submit)="createStation($event)">
+        <div class="form-group">
+          <label for="station-id-input">{{ 'creator.station_id' | translate }}</label>
+          <input type="text" id="station-id-input" name="stationId" [(ngModel)]="stationFormId"
+                 [placeholder]="'creator.station_id_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="station-name-input">{{ 'creator.station_name' | translate }}</label>
+          <input type="text" id="station-name-input" name="stationName" [(ngModel)]="stationFormName"
+                 [placeholder]="'creator.station_name_placeholder' | translate" required>
+        </div>
+        <div class="form-group">
+          <label for="station-owner-input">{{ 'creator.owner_faction' | translate }}</label>
+          <input type="text" id="station-owner-input" name="stationOwner" [(ngModel)]="stationFormOwner"
+                 [placeholder]="'creator.owner_faction_placeholder' | translate">
+        </div>
+        <div class="form-group">
+          <label for="station-system-select">{{ 'creator.assign_system' | translate }}</label>
+          <select id="station-system-select" name="stationSystemId" [(ngModel)]="stationFormSystemId" required>
+            <option value="">{{ 'creator.select_system' | translate }}</option>
+            @for (s of galaxyService.sortedSystems(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm">{{ 'creator.save_station' | translate }}</button>
+      </form>
+    </div>
+
+    <!-- 4. FTL Connections -->
+    <div
+      style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
+      <h3
+        style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-emerald);">
+        {{ 'creator.add_connection' | translate }}
+      </h3>
+      <form (submit)="createConnection($event)">
+        <div class="form-group">
+          <label for="conn-from-select">{{ 'creator.system_a' | translate }}</label>
+          <select id="conn-from-select" name="connFrom" [(ngModel)]="connFormFromId" required>
+            <option value="">{{ 'creator.select_system' | translate }}</option>
+            @for (s of galaxyService.sortedSystems(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="conn-to-select">{{ 'creator.system_b' | translate }}</label>
+          <select id="conn-to-select" name="connTo" [(ngModel)]="connFormToId" required>
+            <option value="">{{ 'creator.select_system' | translate }}</option>
+            @for (s of galaxyService.sortedSystems(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="conn-cost-input">{{ 'creator.jump_cost' | translate }}</label>
+          <input type="number" id="conn-cost-input" name="connCost" [(ngModel)]="connFormCost" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-sm">{{ 'creator.save_connection' | translate }}</button>
+      </form>
+    </div>
+
+    <!-- 5. Import / Export Database -->
+    <div
+      style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01); display: flex; flex-direction: column; gap: 10px;">
+      <h3
+        style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-yellow);">
+        {{ 'creator.import_export' | translate }}
+      </h3>
+      <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="exportJSON()">{{ 'creator.export_btn' | translate }}
+      </button>
+
+      <div style="position: relative;">
+        <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="importJsonTrigger()">{{ 'creator.import_btn' | translate }}
+        </button>
+        <input type="file" id="import-json-file-input" (change)="importJSON($event)" accept=".json"
+               style="display: none;">
+      </div>
+
+      <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="wipeDb()">{{ 'creator.wipe_btn' | translate }}
+      </button>
+    </div>
+
+  </div>
+}
