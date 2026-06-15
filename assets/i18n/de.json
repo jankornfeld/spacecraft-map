@@ -5,6 +5,8 @@
     "place_mode_desc": "Doppelklicken Sie auf einen beliebigen Ort auf der Karte, um ein Sternensystem zu platzieren.",
     "sector_pin_mode": "Sektor-Pin-Modus aktiv:",
     "sector_pin_mode_desc": "Klicken Sie auf die Karte, um Grenzpunkte hinzuzufügen.",
+    "edit_mode": "Editor-Modus aktiv:",
+    "edit_mode_desc": "Ziehen Sie Systeme oder Sektorgrenzpunkte. Rechtsklick auf Sektorgrenzpunkte zum Löschen.",
     "cancel": "Abbrechen"
   },
   "connection_status": {
@@ -49,12 +51,16 @@
     "calculate_btn": "FTL-Pfad berechnen",
     "clear_btn": "Löschen",
     "path_calculated": "Pfad berechnet",
-    "total_jumps": "Sprünge gesamt: {count}",
-    "total_cost": "FTL-Kosten gesamt: {count}",
+    "total_jumps": "Sprünge gesamt: {{count}}",
+    "total_cost": "FTL-Kosten gesamt: {{count}}",
     "navigation_steps": "Navigationsschritte:",
     "jump_step": "Sprung nach {{to}} ({{from}} ➔ {{to}})"
   },
   "creator": {
+    "map_editor": "Karten-Editor",
+    "editor_desc": "Aktivieren Sie den interaktiven Editor-Modus, um Sternensysteme zu verschieben oder Sektorgrenzen direkt per Drag & Drop auf der Karte anzupassen.",
+    "enable_edit_mode": "Interaktiven Editor-Modus aktivieren",
+    "disable_edit_mode": "Interaktiven Editor-Modus deaktivieren",
     "create_sector": "1. Sektor erstellen",
     "sector_id": "Sektor-ID",
     "sector_id_placeholder": "z. B. sector-custom",
@@ -212,7 +218,8 @@
     "exported": "Galaxie-JSON-Konfiguration erfolgreich exportiert",
     "imported": "Galaxie-Layout erfolgreich importiert",
     "import_failed": "Import fehlgeschlagen: {{message}}",
-    "sector_failed": "Sektorerstellung fehlgeschlagen: {{message}}"
+    "sector_failed": "Sektorerstellung fehlgeschlagen: {{message}}",
+    "min_polygon_points": "Ein Sektor benötigt mindestens 3 Grenzpunkte!"
   },
   "confirmations": {
     "delete_planet": "Sind Sie sicher, dass Sie den Planeten {{name}} löschen möchten?",

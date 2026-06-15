@@ -5,6 +5,8 @@
     "place_mode_desc": "Double-click anywhere on the map to place a star system.",
     "sector_pin_mode": "Sector Pin Mode Active:",
     "sector_pin_mode_desc": "Click on the map to add boundary points.",
+    "edit_mode": "Edit Mode Active:",
+    "edit_mode_desc": "Drag systems or sector boundary vertices. Right-click sector vertices to delete.",
     "cancel": "Cancel"
   },
   "connection_status": {
@@ -55,6 +57,10 @@
     "jump_step": "Jump to {to} ({from} ➔ {to})"
   },
   "creator": {
+    "map_editor": "Map Editor",
+    "editor_desc": "Enable interactive edit mode to relocate star systems or reshape sector boundaries directly on the map via drag and drop.",
+    "enable_edit_mode": "Enable Interactive Edit Mode",
+    "disable_edit_mode": "Disable Interactive Edit Mode",
     "create_sector": "1. Create Sector",
     "sector_id": "Sector ID",
     "sector_id_placeholder": "e.g. sector-custom",
@@ -212,7 +218,8 @@
     "exported": "Galaxy JSON configuration exported successfully",
     "imported": "Galaxy layout imported successfully",
     "import_failed": "Import failed: {message}",
-    "sector_failed": "Sector creation failed: {message}"
+    "sector_failed": "Sector creation failed: {message}",
+    "min_polygon_points": "A sector requires at least 3 boundary points!"
   },
   "confirmations": {
     "delete_planet": "Are you sure you want to delete planet {name}?",
