@@ -14,12 +14,15 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
-      <div>{{ 'tabs.sectors' | translate }}: <span style="font-weight: 600;">{{ galaxyService.getSectorName(sys.sectorId) }}</span></div>
+      <div>{{ 'tabs.sectors' | translate }}: <span
+        style="font-weight: 600;">{{ galaxyService.getSectorName(sys.sectorId) }}</span></div>
 
       <div style="display: flex; gap: 8px; margin: 4px 0;">
-        <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;" (click)="setRouteStart.emit(sys.id)">{{ 'details.set_start' | translate }}
+        <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;"
+                (click)="setRouteStart.emit(sys.id)">{{ 'details.set_start' | translate }}
         </button>
-        <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;" (click)="setRouteEnd.emit(sys.id)">{{ 'details.set_destination' | translate }}
+        <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;"
+                (click)="setRouteEnd.emit(sys.id)">{{ 'details.set_destination' | translate }}
         </button>
       </div>
 
@@ -29,14 +32,16 @@
                style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-blue);">
           {{ 'details.planets_in_system' | translate }}
         </label>
-        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-          <select id="detail-planet-select" style="flex: 1; padding: 6px;"
-                  [value]="galaxyService.selectedPlanetId() || ''" (change)="onPlanetSelectChange($event)">
-            @for (p of galaxyService.selectedSystemPlanets(); track p.id) {
-              <option [value]="p.id">{{ p.name }}</option>
-            }
-          </select>
-        </div>
+        @if (galaxyService.selectedSystemPlanets().length > 0) {
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+            <select id="detail-planet-select" style="flex: 1; padding: 6px;"
+                    [value]="galaxyService.selectedPlanetId() || ''" (change)="onPlanetSelectChange($event)">
+              @for (p of galaxyService.selectedSystemPlanets(); track p.id) {
+                <option [value]="p.id">{{ p.name }}</option>
+              }
+            </select>
+          </div>
+        }
 
         @if (galaxyService.selectedSystemPlanets().length === 0) {
           <div id="no-planets-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">
@@ -78,7 +83,9 @@
                       <option [value]="res">{{ 'resources.' + res | translate }}</option>
                     }
                   </select>
-                  <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
+                  <button type="submit" class="btn btn-sm"
+                          style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}
+                  </button>
                 </form>
               }
             </div>
@@ -113,22 +120,28 @@
                       <option [value]="dep">{{ 'deposits.' + dep | translate }}</option>
                     }
                   </select>
-                  <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
+                  <button type="submit" class="btn btn-sm"
+                          style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}
+                  </button>
                 </form>
               }
             </div>
 
             <!-- Bases Section -->
             <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-              <label style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-emerald);">{{ 'details.bases' | translate }}</label>
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-emerald);">{{ 'details.bases' | translate }}</label>
 
               @if (planet.bases && planet.bases.length > 0) {
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                   @for (base of planet.bases; track $index; let baseIndex = $index) {
-                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; position: relative;">
+                    <div
+                      style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; position: relative;">
                       <!-- Base Header -->
-                      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
-                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">{{ base.name }}</div>
+                      <div
+                        style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">{{ base.name }}
+                        </div>
                         @if (galaxyService.isAdmin()) {
                           <button type="button" (click)="removePlanetBase(planet.id, baseIndex)"
                                   style="background: transparent; border: none; color: var(--accent-red); cursor: pointer; font-size: 0.85rem; padding: 0 4px;"
@@ -140,18 +153,22 @@
 
                       <!-- Base Owner -->
                       <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px;">
-                        {{ 'creator.owner_faction' | translate }}: <span style="font-weight: 500; color: var(--text-primary);">{{ base.owner }}</span>
+                        {{ 'creator.owner_faction' | translate }}: <span
+                        style="font-weight: 500; color: var(--text-primary);">{{ base.owner }}</span>
                       </div>
 
                       <!-- Base Productions list -->
                       <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
                         @for (prod of base.productions; track $index; let prodIndex = $index) {
-                          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.02);">
+                          <div
+                            style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.02);">
                             <span style="color: var(--text-secondary);">
-                              {{ 'details.produces' | translate: { item: '' } }}<strong style="color: var(--text-primary);">{{ prod.item }}</strong>
+                              {{ 'details.produces' | translate: {item: ''} }}<strong
+                              style="color: var(--text-primary);">{{ prod.item }}</strong>
                             </span>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                              <span style="font-weight: 600; color: var(--accent-emerald);">{{ prod.amountPerMinute }}/min</span>
+                              <span style="font-weight: 600; color: var(--accent-emerald);">{{ prod.amountPerMinute }}
+                                /min</span>
                               @if (galaxyService.isAdmin()) {
                                 <button type="button" (click)="removeBaseProduction(planet.id, baseIndex, prodIndex)"
                                         style="background: transparent; border: none; color: var(--accent-red); cursor: pointer; font-size: 0.75rem; padding: 0;"
@@ -162,17 +179,23 @@
                             </div>
                           </div>
                         } @empty {
-                          <div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic; padding: 4px 0;">{{ 'details.no_production' | translate }}</div>
+                          <div
+                            style="color: var(--text-muted); font-size: 0.75rem; font-style: italic; padding: 4px 0;">{{ 'details.no_production' | translate }}
+                          </div>
                         }
                       </div>
 
                       <!-- Inline Add Production (Admin Only) -->
                       @if (galaxyService.isAdmin()) {
                         <div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 8px;">
-                          <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center;">
-                            <input #prodItem type="text" [placeholder]="'details.produces_placeholder' | translate" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;">
-                            <input #prodAmount type="number" [placeholder]="'details.qty_placeholder' | translate" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;" min="1">
-                            <button type="button" class="btn btn-sm btn-sec" style="padding: 4px 8px; width: auto; font-size: 0.75rem;"
+                          <div
+                            style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center;">
+                            <input #prodItem type="text" [placeholder]="'details.produces_placeholder' | translate"
+                                   style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;">
+                            <input #prodAmount type="number" [placeholder]="'details.qty_placeholder' | translate"
+                                   style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;" min="1">
+                            <button type="button" class="btn btn-sm btn-sec"
+                                    style="padding: 4px 8px; width: auto; font-size: 0.75rem;"
                                     (click)="addBaseProduction(planet.id, baseIndex, prodItem.value, prodAmount.valueAsNumber); prodItem.value=''; prodAmount.value=''">
                               +
                             </button>
@@ -183,20 +206,29 @@
                   }
                 </div>
               } @else {
-                <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">{{ 'details.no_bases' | translate }}</div>
+                <div
+                  style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">{{ 'details.no_bases' | translate }}
+                </div>
               }
 
               <!-- Add Base Form (Admin Only) -->
               @if (galaxyService.isAdmin()) {
-                <form (submit)="addPlanetBase(planet.id, $event)" style="margin-top: 14px; padding: 10px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-light); border-radius: 8px;">
-                  <div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">{{ 'details.add_base' | translate }}</div>
-
-                  <div class="form-group" style="margin-bottom: 8px;">
-                    <input type="text" name="baseName" [(ngModel)]="newBaseName" [placeholder]="'details.base_name_placeholder' | translate" required style="padding: 6px 8px; font-size: 0.8rem;">
+                <form (submit)="addPlanetBase(planet.id, $event)"
+                      style="margin-top: 14px; padding: 10px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-light); border-radius: 8px;">
+                  <div
+                    style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">{{ 'details.add_base' | translate }}
                   </div>
 
                   <div class="form-group" style="margin-bottom: 8px;">
-                    <input type="text" name="baseOwner" [(ngModel)]="newBaseOwner" [placeholder]="'details.owner_placeholder' | translate" required style="padding: 6px 8px; font-size: 0.8rem;">
+                    <input type="text" name="baseName" [(ngModel)]="newBaseName"
+                           [placeholder]="'details.base_name_placeholder' | translate" required
+                           style="padding: 6px 8px; font-size: 0.8rem;">
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 8px;">
+                    <input type="text" name="baseOwner" [(ngModel)]="newBaseOwner"
+                           [placeholder]="'details.owner_placeholder' | translate" required
+                           style="padding: 6px 8px; font-size: 0.8rem;">
                   </div>
 
                   <button type="submit" class="btn btn-sm" style="width: 100%; justify-content: center; padding: 6px;">
@@ -209,7 +241,8 @@
             <!-- Delete Planet Button (Admin Only) -->
             @if (galaxyService.isAdmin()) {
               <div style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-                <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="deletePlanet(planet.id)">{{ 'details.delete_planet' | translate }}
+                <button class="btn btn-danger btn-sm" style="width: 100%;"
+                        (click)="deletePlanet(planet.id)">{{ 'details.delete_planet' | translate }}
                 </button>
               </div>
             }
@@ -260,7 +293,8 @@
                     }
                   </span>
                 } @empty {
-                  <div style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">{{ 'details.no_facilities' | translate }}
+                  <div
+                    style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">{{ 'details.no_facilities' | translate }}
                   </div>
                 }
               </div>
@@ -277,7 +311,9 @@
                     <option value="Laboratory">Laboratory</option>
                     <option value="Marketplace">Marketplace</option>
                   </select>
-                  <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
+                  <button type="submit" class="btn btn-sm"
+                          style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}
+                  </button>
                 </form>
               }
             </div>
@@ -285,7 +321,8 @@
             <!-- Delete Station Button (Admin Only) -->
             @if (galaxyService.isAdmin()) {
               <div style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-                <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="deleteStation(station.id)">{{ 'details.delete_station' | translate }}
+                <button class="btn btn-danger btn-sm" style="width: 100%;"
+                        (click)="deleteStation(station.id)">{{ 'details.delete_station' | translate }}
                 </button>
               </div>
             }
@@ -297,7 +334,8 @@
       @if (galaxyService.isAdmin()) {
         <div
           style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px; display: flex; gap: 8px;">
-          <button class="btn btn-danger btn-sm" style="flex:1;" (click)="deleteStarSystem(sys.id)">{{ 'details.delete_system' | translate }}
+          <button class="btn btn-danger btn-sm" style="flex:1;"
+                  (click)="deleteStarSystem(sys.id)">{{ 'details.delete_system' | translate }}
           </button>
         </div>
       }
