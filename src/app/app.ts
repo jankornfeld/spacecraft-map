@@ -51,7 +51,7 @@ export class App implements OnInit {
   showGrid = signal<boolean>(true);
   showSectors = signal<boolean>(true);
   showLabels = signal<boolean>(true);
-  planetColorMode = signal<string>('sector');
+  planetColorMode = signal<string>('star');
   starSize = signal<number>(10);
 
   // References to subcomponents

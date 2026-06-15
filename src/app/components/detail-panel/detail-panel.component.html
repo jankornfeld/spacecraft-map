@@ -287,7 +287,7 @@
               <div class="chips-container">
                 @for (f of station.facilities; track f.type) {
                   <span class="chip">
-                    <span class="badge badge-blue" style="font-size:0.75rem;">{{ f.type }}</span>
+                    <span class="badge badge-blue" style="font-size:0.75rem;">{{ 'modules.' + f.type | translate }}</span>
                     @if (galaxyService.isAdmin()) {
                       <button type="button" (click)="removeStationFacility(station.id, f.type)">✕</button>
                     }
@@ -305,11 +305,9 @@
                       style="margin-top: 10px; display: flex; gap: 6px;">
                   <select name="newFacility" [(ngModel)]="newStationFacilityVal"
                           style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
-                    <option value="Dock">Dock</option>
-                    <option value="ShipYard">Shipyard</option>
-                    <option value="MiningBureau">Mining Bureau</option>
-                    <option value="Laboratory">Laboratory</option>
-                    <option value="Marketplace">Marketplace</option>
+                    @for (mod of galaxyService.ALL_SPACESTATION_MODULES; track mod) {
+                      <option [value]="mod">{{ 'modules.' + mod | translate }}</option>
+                    }
                   </select>
                   <button type="submit" class="btn btn-sm"
                           style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}

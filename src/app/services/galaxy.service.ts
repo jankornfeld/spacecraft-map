@@ -17,6 +17,10 @@ export class GalaxyService {
     "copper", "iron", "sandstone", "aluminum"
   ];
 
+  readonly ALL_SPACESTATION_MODULES = [
+    "shipyard", "miningbureau", "laboratory", "marketplace"
+  ];
+
   // Supabase Client
   private supabaseClient: SupabaseClient | null = null;
 
@@ -335,7 +339,7 @@ export class GalaxyService {
         if (s.id === sectorId) {
           const newPolygon = [...s.polygon];
           newPolygon[vertexIndex] = [x, y];
-          
+
           let sumX = 0, sumY = 0;
           newPolygon.forEach(p => {
             sumX += p[0];
@@ -358,7 +362,7 @@ export class GalaxyService {
         if (s.id === sectorId) {
           const newPolygon = [...s.polygon];
           newPolygon.splice(insertIndex, 0, [x, y]);
-          
+
           let sumX = 0, sumY = 0;
           newPolygon.forEach(p => {
             sumX += p[0];
@@ -385,7 +389,7 @@ export class GalaxyService {
           }
           const newPolygon = [...s.polygon];
           newPolygon.splice(vertexIndex, 1);
-          
+
           let sumX = 0, sumY = 0;
           newPolygon.forEach(p => {
             sumX += p[0];

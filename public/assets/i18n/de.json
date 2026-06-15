@@ -250,5 +250,11 @@
     "iron": "Eisenlager",
     "sandstone": "Sandsteinlager",
     "aluminum": "Aluminiumlager"
+  },
+  "modules": {
+    "shipyard": "Werft",
+    "miningbureau": "Minenbüro",
+    "laboratory": "Labor",
+    "marketplace": "Handelsknoten"
   }
 }

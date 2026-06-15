@@ -20,7 +20,7 @@ export class SettingsTabComponent {
   showGrid = model<boolean>(true);
   showSectors = model<boolean>(true);
   showLabels = model<boolean>(true);
-  planetColorMode = model<string>('sector');
+  planetColorMode = model<string>('star');
   starSize = model<number>(10);
 
   // DB Config Fields
