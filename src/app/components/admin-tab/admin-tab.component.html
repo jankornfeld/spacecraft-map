@@ -11,6 +11,23 @@
   <!-- Creator Panels -->
   <div id="creator-tools-panel" style="display: flex; flex-direction: column; gap: 24px;">
 
+    <!-- 0. Map Editor Toggle -->
+    <div
+      style="border: 1px solid var(--border-glow); padding: 16px; border-radius: 10px; background: rgba(59, 130, 246, 0.05);">
+      <h3
+        style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 8px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">
+        🗺️ {{ 'creator.map_editor' | translate }}
+      </h3>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+        {{ 'creator.editor_desc' | translate }}
+      </p>
+      <button type="button" class="btn btn-sm" [class.btn-sec]="!isEditMode()" 
+              [style.borderColor]="isEditMode() ? 'var(--accent-blue)' : ''" 
+              (click)="toggleEditMode.emit()">
+        ⚡ {{ (isEditMode() ? 'creator.disable_edit_mode' : 'creator.enable_edit_mode') | translate }}
+      </button>
+    </div>
+
     <!-- 1. Create Sector -->
     <div
       style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">

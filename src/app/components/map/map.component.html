@@ -56,6 +56,33 @@
         }
       </g>
 
+      <!-- Sector Handles Layer (Edit Mode) -->
+      @if (isEditMode() && showSectors() && galaxyService.isAdmin()) {
+        <g id="sector-handles-layer">
+          @for (sec of galaxyService.sectors(); track sec.id) {
+            @if (sec.polygon && sec.polygon.length >= 3 && isSectorVisible(sec.id)) {
+              <!-- Midpoint handles (creating new vertices) -->
+              @for (mid of getSectorMidpoints(sec); track $index) {
+                <circle [attr.cx]="mid.pt[0]" [attr.cy]="mid.pt[1]" r="4.5"
+                        [attr.fill]="sec.color" fill-opacity="0.5" stroke="#ffffff" stroke-width="1.0"
+                        style="cursor: pointer;"
+                        (mousedown)="onMidpointHandleMouseDown($event, sec, mid.index, mid.pt)"
+                        title="Drag to add point"></circle>
+              }
+              <!-- Vertex handles (dragging or deleting) -->
+              @for (pt of sec.polygon; track $index) {
+                <circle [attr.cx]="pt[0]" [attr.cy]="pt[1]" r="6.5"
+                        [attr.fill]="sec.color" stroke="#ffffff" stroke-width="1.5"
+                        style="cursor: move;"
+                        (mousedown)="onSectorHandleMouseDown($event, sec, $index)"
+                        (contextmenu)="onSectorHandleRightClick($event, sec, $index)"
+                        title="Drag to move, Right-click to delete"></circle>
+              }
+            }
+          }
+        </g>
+      }
+
       <!-- Lanes Layer -->
       <g id="lanes-layer">
         @for (conn of galaxyService.connections(); track $index) {
@@ -71,7 +98,10 @@
       <!-- Stars Layer -->
       <g id="stars-layer">
         @for (sys of galaxyService.systems(); track sys.id) {
-          <g class="system-node" [attr.id]="'node-' + sys.id" (click)="onNodeClick(sys.id, $event)">
+          <g class="system-node" [attr.id]="'node-' + sys.id" 
+             (click)="onNodeClick(sys.id, $event)"
+             (mousedown)="onSystemMouseDown($event, sys)"
+             [style.cursor]="isEditMode() && galaxyService.isAdmin() ? 'move' : 'pointer'">
             <!-- Selection ring -->
             @if (galaxyService.selectedSystemId() === sys.id) {
               <circle [attr.cx]="sys.x" [attr.cy]="sys.y" [attr.r]="starSize() / 2 + 3" fill="none"

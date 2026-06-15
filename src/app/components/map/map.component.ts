@@ -24,8 +24,15 @@ export class MapComponent {
   // Coordinate capture modes
   isPlaceMode = input<boolean>(false);
   isSectorPinMode = input<boolean>(false);
+  isEditMode = input<boolean>(false);
   sectorColorInput = input<string>('#a855f7');
   tempSectorPoints = model<[number, number][]>([]);
+
+  // Dragging states
+  activeDraggedSystemId: string | null = null;
+  activeDraggedSectorId: string | null = null;
+  activeDraggedSectorVertexIndex: number = -1;
+  dragOffset = { x: 0, y: 0 };
 
   // Selection events
   systemSelected = output<string>();
@@ -96,18 +103,135 @@ export class MapComponent {
     this.translateY = mouseY - (mouseY - this.translateY) * (this.scale / oldScale);
   }
 
+  onSystemMouseDown(e: MouseEvent, sys: StarSystem) {
+    if (!this.isEditMode() || !this.galaxyService.isAdmin()) return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    this.activeDraggedSystemId = sys.id;
+
+    const svg = document.getElementById("map-viewport");
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left - this.translateX) / this.scale;
+    const mouseY = (e.clientY - rect.top - this.translateY) / this.scale;
+
+    this.dragOffset = {
+      x: sys.x - mouseX,
+      y: sys.y - mouseY
+    };
+  }
+
+  onSectorHandleMouseDown(e: MouseEvent, sec: Sector, vertexIndex: number) {
+    if (!this.isEditMode() || !this.galaxyService.isAdmin()) return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    this.activeDraggedSectorId = sec.id;
+    this.activeDraggedSectorVertexIndex = vertexIndex;
+  }
+
+  onMidpointHandleMouseDown(e: MouseEvent, sec: Sector, insertIndex: number, midpoint: [number, number]) {
+    if (!this.isEditMode() || !this.galaxyService.isAdmin()) return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Insert the midpoint vertex into the polygon
+    this.galaxyService.insertSectorVertex(sec.id, insertIndex, midpoint[0], midpoint[1]);
+
+    // Set dragging state for the newly created vertex
+    this.activeDraggedSectorId = sec.id;
+    this.activeDraggedSectorVertexIndex = insertIndex;
+  }
+
+  onSectorHandleRightClick(e: MouseEvent, sec: Sector, vertexIndex: number) {
+    if (!this.isEditMode() || !this.galaxyService.isAdmin()) return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    this.galaxyService.removeSectorVertex(sec.id, vertexIndex);
+    
+    // Save updated sector
+    const updatedSec = this.galaxyService.sectors().find(s => s.id === sec.id);
+    if (updatedSec) {
+      this.galaxyService.dbSaveSector(updatedSec);
+    }
+  }
+
+  getSectorMidpoints(sec: Sector): { index: number; pt: [number, number] }[] {
+    const midpoints: { index: number; pt: [number, number] }[] = [];
+    const polygon = sec.polygon;
+    if (!polygon || polygon.length < 3) return midpoints;
+
+    for (let i = 0; i < polygon.length; i++) {
+      const p1 = polygon[i];
+      const p2 = polygon[(i + 1) % polygon.length];
+      const midpoint: [number, number] = [
+        parseFloat(((p1[0] + p2[0]) / 2).toFixed(1)),
+        parseFloat(((p1[1] + p2[1]) / 2).toFixed(1))
+      ];
+      midpoints.push({
+        index: i + 1,
+        pt: midpoint
+      });
+    }
+    return midpoints;
+  }
+
   @HostListener('window:mousemove', ['$event'])
   onWindowMouseMove(e: MouseEvent) {
-    if (!this.isPanning) return;
-    this.translateX = e.clientX - this.startX;
-    this.translateY = e.clientY - this.startY;
+    if (this.isPanning) {
+      this.translateX = e.clientX - this.startX;
+      this.translateY = e.clientY - this.startY;
+    } else if (this.activeDraggedSystemId && this.isEditMode() && this.galaxyService.isAdmin()) {
+      const svg = document.getElementById("map-viewport");
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left - this.translateX) / this.scale;
+      const mouseY = (e.clientY - rect.top - this.translateY) / this.scale;
+
+      const newX = parseFloat((mouseX + this.dragOffset.x).toFixed(1));
+      const newY = parseFloat((mouseY + this.dragOffset.y).toFixed(1));
+
+      this.galaxyService.updateSystemCoords(this.activeDraggedSystemId, newX, newY);
+    } else if (this.activeDraggedSectorId && this.activeDraggedSectorVertexIndex !== -1 && this.isEditMode() && this.galaxyService.isAdmin()) {
+      const svg = document.getElementById("map-viewport");
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left - this.translateX) / this.scale;
+      const mouseY = (e.clientY - rect.top - this.translateY) / this.scale;
+
+      const newX = parseFloat(mouseX.toFixed(1));
+      const newY = parseFloat(mouseY.toFixed(1));
+
+      this.galaxyService.updateSectorVertex(this.activeDraggedSectorId, this.activeDraggedSectorVertexIndex, newX, newY);
+    }
   }
 
   @HostListener('window:mouseup')
-  onWindowMouseUp() {
+  async onWindowMouseUp() {
     if (this.isPanning) {
       this.isPanning = false;
       this.mapCursor.set('grab');
+    } else if (this.activeDraggedSystemId) {
+      const sysId = this.activeDraggedSystemId;
+      this.activeDraggedSystemId = null;
+      const sys = this.galaxyService.systems().find(s => s.id === sysId);
+      if (sys) {
+        await this.galaxyService.dbSaveSystem(sys);
+      }
+    } else if (this.activeDraggedSectorId) {
+      const sectorId = this.activeDraggedSectorId;
+      this.activeDraggedSectorId = null;
+      this.activeDraggedSectorVertexIndex = -1;
+      const sec = this.galaxyService.sectors().find(s => s.id === sectorId);
+      if (sec) {
+        await this.galaxyService.dbSaveSector(sec);
+      }
     }
   }
 

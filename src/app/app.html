@@ -1,9 +1,11 @@
 <!-- Place Mode Banner notification -->
-<div id="place-banner" class="banner" [class.active]="isPlaceMode() || isSectorPinMode()">
+<div id="place-banner" class="banner" [class.active]="isPlaceMode() || isSectorPinMode() || isEditMode()">
   @if (isPlaceMode()) {
     <span><strong>{{ 'place_banner.place_mode' | translate }}</strong> {{ 'place_banner.place_mode_desc' | translate }}</span>
   } @else if (isSectorPinMode()) {
     <span><strong>{{ 'place_banner.sector_pin_mode' | translate }}</strong> {{ 'place_banner.sector_pin_mode_desc' | translate }}</span>
+  } @else if (isEditMode()) {
+    <span><strong>{{ 'place_banner.edit_mode' | translate }}</strong> {{ 'place_banner.edit_mode_desc' | translate }}</span>
   }
   <button (click)="cancelModes()" class="btn btn-sec btn-sm" style="color: var(--accent-red)">{{ 'place_banner.cancel' | translate }}</button>
 </div>
@@ -76,9 +78,11 @@
         <app-admin-tab
           [isPlaceMode]="isPlaceMode()"
           [isSectorPinMode]="isSectorPinMode()"
+          [isEditMode]="isEditMode()"
           [tempSectorPointsLength]="tempSectorPoints().length"
           (togglePlaceMode)="togglePlaceMode()"
           (toggleSectorPinMode)="toggleSectorPinMode()"
+          (toggleEditMode)="toggleEditMode()"
           (undoSectorPoint)="undoSectorPoint()"
           (clearSectorPoints)="clearSectorPoints()"
           (recenterMap)="recenterMap()">
@@ -108,6 +112,7 @@
     [starSize]="starSize()"
     [isPlaceMode]="isPlaceMode()"
     [isSectorPinMode]="isSectorPinMode()"
+    [isEditMode]="isEditMode()"
     [(tempSectorPoints)]="tempSectorPoints"
     (coordinatesSelected)="onCoordinatesSelected($event)"
     (systemSelected)="onSystemSelected($event)">

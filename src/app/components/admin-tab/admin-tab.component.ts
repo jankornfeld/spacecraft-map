@@ -19,11 +19,13 @@ export class AdminTabComponent {
   // Layout mode states (bind map actions)
   isPlaceMode = input<boolean>(false);
   isSectorPinMode = input<boolean>(false);
+  isEditMode = input<boolean>(false);
   tempSectorPointsLength = input<number>(0);
 
   // Coordinate mode toggle outputs
   togglePlaceMode = output<void>();
   toggleSectorPinMode = output<void>();
+  toggleEditMode = output<void>();
   undoSectorPoint = output<void>();
   clearSectorPoints = output<void>();
   recenterMap = output<void>();

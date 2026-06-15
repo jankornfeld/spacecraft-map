@@ -44,6 +44,7 @@ export class App implements OnInit {
   // Map Navigation & Interaction State (shared with subcomponents)
   isPlaceMode = signal<boolean>(false);
   isSectorPinMode = signal<boolean>(false);
+  isEditMode = signal<boolean>(false);
   tempSectorPoints = signal<[number, number][]>([]);
 
   // Map Controls State (Grid & Boundaries visibility)
@@ -130,6 +131,7 @@ export class App implements OnInit {
   cancelModes() {
     this.isPlaceMode.set(false);
     this.isSectorPinMode.set(false);
+    this.isEditMode.set(false);
     this.tempSectorPoints.set([]);
   }
 
@@ -137,6 +139,7 @@ export class App implements OnInit {
     if (!this.galaxyService.isAdmin()) return;
     this.isPlaceMode.set(true);
     this.isSectorPinMode.set(false);
+    this.isEditMode.set(false);
   }
 
   toggleSectorPinMode() {
@@ -147,6 +150,18 @@ export class App implements OnInit {
     } else {
       this.isSectorPinMode.set(true);
       this.isPlaceMode.set(false);
+      this.isEditMode.set(false);
+    }
+  }
+
+  toggleEditMode() {
+    if (!this.galaxyService.isAdmin()) return;
+    if (this.isEditMode()) {
+      this.isEditMode.set(false);
+    } else {
+      this.isEditMode.set(true);
+      this.isPlaceMode.set(false);
+      this.isSectorPinMode.set(false);
     }
   }
 

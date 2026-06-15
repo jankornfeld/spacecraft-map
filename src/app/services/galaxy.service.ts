@@ -318,6 +318,90 @@ export class GalaxyService {
     });
   }
 
+  updateSystemCoords(sysId: string, x: number, y: number) {
+    this.systems.update(current => {
+      return current.map(s => {
+        if (s.id === sysId) {
+          return { ...s, x, y };
+        }
+        return s;
+      });
+    });
+  }
+
+  updateSectorVertex(sectorId: string, vertexIndex: number, x: number, y: number) {
+    this.sectors.update(current => {
+      return current.map(s => {
+        if (s.id === sectorId) {
+          const newPolygon = [...s.polygon];
+          newPolygon[vertexIndex] = [x, y];
+          
+          let sumX = 0, sumY = 0;
+          newPolygon.forEach(p => {
+            sumX += p[0];
+            sumY += p[1];
+          });
+          const centroid = {
+            x: sumX / newPolygon.length,
+            y: sumY / newPolygon.length
+          };
+          return { ...s, polygon: newPolygon, centroid };
+        }
+        return s;
+      });
+    });
+  }
+
+  insertSectorVertex(sectorId: string, insertIndex: number, x: number, y: number) {
+    this.sectors.update(current => {
+      return current.map(s => {
+        if (s.id === sectorId) {
+          const newPolygon = [...s.polygon];
+          newPolygon.splice(insertIndex, 0, [x, y]);
+          
+          let sumX = 0, sumY = 0;
+          newPolygon.forEach(p => {
+            sumX += p[0];
+            sumY += p[1];
+          });
+          const centroid = {
+            x: sumX / newPolygon.length,
+            y: sumY / newPolygon.length
+          };
+          return { ...s, polygon: newPolygon, centroid };
+        }
+        return s;
+      });
+    });
+  }
+
+  removeSectorVertex(sectorId: string, vertexIndex: number) {
+    this.sectors.update(current => {
+      return current.map(s => {
+        if (s.id === sectorId) {
+          if (s.polygon.length <= 3) {
+            this.showToast(this.translate.instant('toasts.min_polygon_points'), 'warning');
+            return s;
+          }
+          const newPolygon = [...s.polygon];
+          newPolygon.splice(vertexIndex, 1);
+          
+          let sumX = 0, sumY = 0;
+          newPolygon.forEach(p => {
+            sumX += p[0];
+            sumY += p[1];
+          });
+          const centroid = {
+            x: sumX / newPolygon.length,
+            y: sumY / newPolygon.length
+          };
+          return { ...s, polygon: newPolygon, centroid };
+        }
+        return s;
+      });
+    });
+  }
+
   // --- CRUD WRITES ---
   async dbSaveSector(sector: Sector) {
     this.sectors.update(current => {
