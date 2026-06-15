@@ -225,6 +225,19 @@ main:active {
   transition: var(--transition-smooth);
 }
 
+.connection-lane-hover-target {
+  stroke: transparent;
+  stroke-width: 12;
+  fill: none;
+  cursor: pointer;
+}
+
+.connection-group:hover .connection-lane {
+  stroke: var(--accent-blue);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px var(--accent-blue-glow));
+}
+
 .connection-lane.active-path {
   stroke: var(--accent-emerald);
   stroke-width: 2.5;
@@ -237,6 +250,66 @@ main:active {
   to {
     stroke-dashoffset: -200;
   }
+}
+
+.connection-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  backdrop-filter: blur(12px);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: var(--shadow-premium);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+}
+
+.connection-tooltip .tooltip-title {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.connection-tooltip .tooltip-cost {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.connection-tooltip .cost-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.connection-tooltip .cost-value {
+  color: var(--accent-yellow);
+  font-family: var(--font-mono);
+  font-weight: bold;
+}
+
+.system-symbol {
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+  transition: var(--transition-smooth);
+}
+
+.base-symbol path {
+  filter: drop-shadow(0 0 2px var(--accent-emerald-glow));
+}
+
+.station-symbol circle,
+.station-symbol path {
+  filter: drop-shadow(0 0 2px var(--accent-blue-glow));
 }
 
 .system-node {

@@ -1,5 +1,6 @@
 {
   "app_title": "🌌 SpaceCraft Galaxy Map",
+  "cost": "FTL Cost",
   "place_banner": {
     "place_mode": "Place Mode Active:",
     "place_mode_desc": "Double-click anywhere on the map to place a star system.",

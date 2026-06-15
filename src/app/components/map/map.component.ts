@@ -1,5 +1,6 @@
 import { Component, signal, computed, HostListener, inject, input, output, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { GalaxyService } from '../../services/galaxy.service';
 import { Sector, StarSystem, Connection } from '../../models/galaxy.model';
 import { getSystemNodeColor, getStarColorClass, getStarBadgeBg, getStarBadgeColor, getStarBadgeBorder } from '../../utils/star.utils';
@@ -7,7 +8,7 @@ import { getSystemNodeColor, getStarColorClass, getStarBadgeBg, getStarBadgeColo
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './map.component.html',
   styleUrl: './map.component.css'
 })
@@ -48,6 +49,10 @@ export class MapComponent {
   dragStartClientX = 0;
   dragStartClientY = 0;
   mapCursor = signal<string>('grab');
+
+  // Hovered connection states
+  hoveredConnection = signal<Connection | null>(null);
+  hoveredConnectionMousePos = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // --- SVG INTERACTIVE MAP VIEWPORT DRAG/ZOOM ---
   onMapMouseDown(e: MouseEvent) {
@@ -381,5 +386,52 @@ export class MapComponent {
 
   getSystemNodeColor(sys: StarSystem): string {
     return getSystemNodeColor(this.planetColorMode(), sys, this.galaxyService.sectors());
+  }
+
+  hasBase(sysId: string): boolean {
+    return this.galaxyService.planets().some(p => p.systemId === sysId && p.bases && p.bases.length > 0);
+  }
+
+  hasStation(sysId: string): boolean {
+    return this.galaxyService.stations().some(s => s.systemId === sysId);
+  }
+
+  getSystemLabelY(sys: StarSystem): number {
+    const baseOffset = (this.starSize() / 2) + 6;
+    if (this.hasBase(sys.id) || this.hasStation(sys.id)) {
+      return sys.y - baseOffset - 12;
+    }
+    return sys.y - baseOffset;
+  }
+
+  getConnectionLabel(conn: Connection): string {
+    const systems = this.galaxyService.systems();
+    const from = systems.find(s => s.id === conn.from_system_id)?.name || 'Unknown';
+    const to = systems.find(s => s.id === conn.to_system_id)?.name || 'Unknown';
+    return `${from} ⟷ ${to}`;
+  }
+
+  onConnectionMouseEnter(event: MouseEvent, conn: Connection) {
+    this.hoveredConnection.set(conn);
+    this.updateTooltipPosition(event);
+  }
+
+  onConnectionMouseMove(event: MouseEvent) {
+    this.updateTooltipPosition(event);
+  }
+
+  onConnectionMouseLeave() {
+    this.hoveredConnection.set(null);
+  }
+
+  updateTooltipPosition(event: MouseEvent) {
+    const container = document.getElementById('map-viewport-container');
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      this.hoveredConnectionMousePos.set({
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      });
+    }
   }
 }

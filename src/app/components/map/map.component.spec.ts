@@ -89,4 +89,107 @@ describe('MapComponent', () => {
     coords = component.getLaneCoords(conn);
     expect(coords).toEqual({ x1: 200, y1: 200, x2: 100, y2: 100 });
   });
+
+  it('should correctly detect if a system has a base or station', () => {
+    const sysId = 'sys-test';
+    // Initially false
+    expect(component.hasBase(sysId)).toBe(false);
+    expect(component.hasStation(sysId)).toBe(false);
+
+    // Add a station
+    service.stations.set([{
+      id: 'station-1',
+      name: 'Station 1',
+      systemId: sysId,
+      owner: 'Player',
+      facilities: []
+    }]);
+    expect(component.hasStation(sysId)).toBe(true);
+
+    // Add a planet with no bases
+    service.planets.set([{
+      id: 'planet-1',
+      name: 'Planet 1',
+      systemId: sysId,
+      resources: [],
+      deposits: []
+    }]);
+    expect(component.hasBase(sysId)).toBe(false);
+
+    // Add a base to the planet
+    service.planets.set([{
+      id: 'planet-1',
+      name: 'Planet 1',
+      systemId: sysId,
+      resources: [],
+      deposits: [],
+      bases: [{ name: 'Base 1', owner: 'Player', productions: [] }]
+    }]);
+    expect(component.hasBase(sysId)).toBe(true);
+  });
+
+  it('should compute the correct label Y coordinate to avoid overlapping', () => {
+    const sys: StarSystem = {
+      id: 'sys-label-test',
+      name: 'Test System',
+      starType: 'G',
+      starColor: '#ffffff',
+      index: 1,
+      sectorId: 'sec-1',
+      color: '#ffffff',
+      x: 100,
+      y: 100
+    };
+    
+    // No base/station -> normal Y (sys.y - starSize/2 - 6 = 100 - 5 - 6 = 89)
+    service.stations.set([]);
+    service.planets.set([]);
+    expect(component.getSystemLabelY(sys)).toBe(89);
+
+    // Add station -> should shift up by 12px (89 - 12 = 77)
+    service.stations.set([{
+      id: 'station-2',
+      name: 'Station 2',
+      systemId: 'sys-label-test',
+      owner: 'Player',
+      facilities: []
+    }]);
+    expect(component.getSystemLabelY(sys)).toBe(77);
+  });
+
+  it('should return the correct connection label', () => {
+    const systemA: StarSystem = {
+      id: 'sys-a',
+      name: 'Sol',
+      starType: 'G',
+      starColor: '#ffffff',
+      index: 1,
+      sectorId: 'sec-1',
+      color: '#ffffff',
+      x: 100,
+      y: 100
+    };
+
+    const systemB: StarSystem = {
+      id: 'sys-b',
+      name: 'Alpha Centauri',
+      starType: 'K',
+      starColor: '#ff0000',
+      index: 2,
+      sectorId: 'sec-1',
+      color: '#ff0000',
+      x: 200,
+      y: 200
+    };
+
+    service.systems.set([systemA, systemB]);
+
+    const conn: Connection = {
+      from_system_id: 'sys-a',
+      to_system_id: 'sys-b',
+      cost: 5
+    };
+
+    expect(component.getConnectionLabel(conn)).toBe('Sol ⟷ Alpha Centauri');
+  });
 });

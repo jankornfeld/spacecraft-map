@@ -87,10 +87,17 @@
       <g id="lanes-layer">
         @for (conn of galaxyService.connections(); track $index) {
           @if (getLaneCoords(conn); as coords) {
-            <line [attr.x1]="coords.x1" [attr.y1]="coords.y1" [attr.x2]="coords.x2" [attr.y2]="coords.y2"
-                  class="connection-lane"
-                  [class.active-path]="isLaneActivePath(conn.from_system_id, conn.to_system_id)"
-                  [attr.id]="'lane-' + conn.from_system_id + '-' + conn.to_system_id"></line>
+            <g class="connection-group">
+              <line [attr.x1]="coords.x1" [attr.y1]="coords.y1" [attr.x2]="coords.x2" [attr.y2]="coords.y2"
+                    class="connection-lane"
+                    [class.active-path]="isLaneActivePath(conn.from_system_id, conn.to_system_id)"
+                    [attr.id]="'lane-' + conn.from_system_id + '-' + conn.to_system_id"></line>
+              <line [attr.x1]="coords.x1" [attr.y1]="coords.y1" [attr.x2]="coords.x2" [attr.y2]="coords.y2"
+                    class="connection-lane-hover-target"
+                    (mouseenter)="onConnectionMouseEnter($event, conn)"
+                    (mousemove)="onConnectionMouseMove($event)"
+                    (mouseleave)="onConnectionMouseLeave()"></line>
+            </g>
           }
         }
       </g>
@@ -110,6 +117,31 @@
             <!-- Star node -->
             <circle [attr.cx]="sys.x" [attr.cy]="sys.y" [attr.r]="starSize() / 2"
                     [attr.fill]="getSystemNodeColor(sys)" stroke="#ffffff" stroke-width="1.5"></circle>
+
+            <!-- Base & Station Symbols -->
+            @if (hasBase(sys.id) && hasStation(sys.id)) {
+              <!-- Both present: side-by-side -->
+              <g [attr.transform]="'translate(' + (sys.x - 6) + ', ' + (sys.y - 12) + ')'" class="system-symbol base-symbol">
+                <path d="M -4,2 L -4,-2 L 0,-5 L 4,-2 L 4,2 Z" fill="none" stroke="var(--accent-emerald)" stroke-width="1.2"></path>
+                <circle cx="0" cy="0" r="1.2" fill="var(--accent-emerald)"></circle>
+              </g>
+              <g [attr.transform]="'translate(' + (sys.x + 6) + ', ' + (sys.y - 12) + ')'" class="system-symbol station-symbol">
+                <circle cx="0" cy="0" r="3" fill="none" stroke="var(--accent-blue)" stroke-width="1.2"></circle>
+                <path d="M -5,0 L 5,0 M 0,-5 L 0,5" stroke="var(--accent-blue)" stroke-width="0.8"></path>
+              </g>
+            } @else if (hasBase(sys.id)) {
+              <!-- Only Base: centered -->
+              <g [attr.transform]="'translate(' + sys.x + ', ' + (sys.y - 12) + ')'" class="system-symbol base-symbol">
+                <path d="M -4,2 L -4,-2 L 0,-5 L 4,-2 L 4,2 Z" fill="none" stroke="var(--accent-emerald)" stroke-width="1.2"></path>
+                <circle cx="0" cy="0" r="1.2" fill="var(--accent-emerald)"></circle>
+              </g>
+            } @else if (hasStation(sys.id)) {
+              <!-- Only Station: centered -->
+              <g [attr.transform]="'translate(' + sys.x + ', ' + (sys.y - 12) + ')'" class="system-symbol station-symbol">
+                <circle cx="0" cy="0" r="3" fill="none" stroke="var(--accent-blue)" stroke-width="1.2"></circle>
+                <path d="M -5,0 L 5,0 M 0,-5 L 0,5" stroke="var(--accent-blue)" stroke-width="0.8"></path>
+              </g>
+            }
           </g>
         }
       </g>
@@ -130,7 +162,7 @@
         <!-- Planet labels -->
         @if (showLabels()) {
           @for (sys of galaxyService.systems(); track sys.id) {
-            <text [attr.x]="sys.x" [attr.y]="sys.y - (starSize() / 2) - 6" class="system-label" text-anchor="middle"
+            <text [attr.x]="sys.x" [attr.y]="getSystemLabelY(sys)" class="system-label" text-anchor="middle"
                   [attr.id]="'label-' + sys.id">
               {{ sys.name }}
             </text>
@@ -146,4 +178,17 @@
     <button class="control-btn" title="Zoom Out" (click)="zoomOut()">−</button>
     <button class="control-btn" title="Recenter Map" (click)="recenterMap()">⌖</button>
   </div>
+
+  <!-- Floating Connection Cost Tooltip -->
+  @if (hoveredConnection(); as conn) {
+    <div class="connection-tooltip"
+         [style.left.px]="hoveredConnectionMousePos().x + 15"
+         [style.top.px]="hoveredConnectionMousePos().y + 15">
+      <div class="tooltip-title">{{ getConnectionLabel(conn) }}</div>
+      <div class="tooltip-cost">
+        <span class="cost-label">{{ 'cost' | translate }}:</span>
+        <span class="cost-value">{{ conn.cost }}</span>
+      </div>
+    </div>
+  }
 </main>

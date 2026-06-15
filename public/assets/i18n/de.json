@@ -1,5 +1,6 @@
 {
   "app_title": "🌌 SpaceCraft Galaxiekarte",
+  "cost": "FTL-Kosten",
   "place_banner": {
     "place_mode": "Platziermodus aktiv:",
     "place_mode_desc": "Doppelklicken Sie auf einen beliebigen Ort auf der Karte, um ein Sternensystem zu platzieren.",

@@ -96,7 +96,7 @@
               <div class="chips-container">
                 @for (d of planet.deposits; track d) {
                   <span class="chip">
-                    <code>{{ 'deposits.' + d | translate }}</code>
+                    {{ 'deposits.' + d | translate }}
                     @if (galaxyService.isAdmin()) {
                       <button type="button" (click)="removePlanetDeposit(planet.id, d)">✕</button>
                     }
