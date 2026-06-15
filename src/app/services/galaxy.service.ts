@@ -1,5 +1,6 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { TranslateService } from '@ngx-translate/core';
 import { Sector, StarSystem, Planet, SpaceStation, Connection, CalculatedRoute, CalculatedRouteStep } from '../models/galaxy.model';
 
 @Injectable({
@@ -36,8 +37,10 @@ export class GalaxyService {
   // Database status
   isDbConnected = signal<boolean>(false);
   isAdmin = signal<boolean>(false);
-  connectionStatusText = signal<string>('No Database Connected');
+  connectionStatusText = signal<string>('connection_status.no_db');
   connectionStatusClass = signal<string>('badge badge-yellow');
+
+  private translate = inject(TranslateService);
 
   // Core Datasets
   sectors = signal<Sector[]>([]);
@@ -109,7 +112,7 @@ export class GalaxyService {
       this.supabaseClient = null;
       this.activeUrl.set('');
       this.activeKey.set('');
-      this.connectionStatusText.set('Offline Sandbox Mode');
+      this.connectionStatusText.set('connection_status.offline');
       this.connectionStatusClass.set('badge badge-blue');
     }
   }
@@ -119,14 +122,14 @@ export class GalaxyService {
       try {
         this.supabaseClient = createClient(url, key);
         this.isDbConnected.set(true);
-        this.connectionStatusText.set('Supabase Connected');
+        this.connectionStatusText.set('connection_status.connected');
         this.connectionStatusClass.set('badge badge-emerald');
         this.activeUrl.set(url);
         this.activeKey.set(key);
         
         this.safeSetItem('spacecraft_supabase_url', url);
         this.safeSetItem('spacecraft_supabase_key', key);
-        this.showToast('Connected to Supabase Cloud Database', 'success');
+        this.showToast(this.translate.instant('toasts.db_connected'), 'success');
         this.loadData();
       } catch (e) {
         console.error('Supabase config failed', e);
@@ -134,9 +137,9 @@ export class GalaxyService {
         this.supabaseClient = null;
         this.activeUrl.set('');
         this.activeKey.set('');
-        this.connectionStatusText.set('Connection Error');
+        this.connectionStatusText.set('connection_status.error');
         this.connectionStatusClass.set('badge badge-red');
-        this.showToast('Supabase connection configuration failed.', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       }
     } else {
       this.disconnectDb();
@@ -151,9 +154,9 @@ export class GalaxyService {
     this.isDbConnected.set(false);
     this.supabaseClient = null;
     this.isAdmin.set(false);
-    this.connectionStatusText.set('Offline Sandbox Mode');
+    this.connectionStatusText.set('connection_status.offline');
     this.connectionStatusClass.set('badge badge-blue');
-    this.showToast('Disconnected from cloud database');
+    this.showToast(this.translate.instant('toasts.db_disconnected'));
     this.loadData();
   }
 
@@ -187,7 +190,7 @@ export class GalaxyService {
       }
     }
     this.isAdmin.set(false);
-    this.showToast('Logged out successfully');
+    this.showToast(this.translate.instant('toasts.logged_out'));
   }
 
   // --- CRUD DATA LOADING ---
@@ -256,7 +259,7 @@ export class GalaxyService {
 
       } catch (e) {
         console.error('Error fetching from Supabase', e);
-        this.showToast('Cloud DB fetch failed. Falling back to local storage.', 'warning');
+        this.showToast(this.translate.instant('toasts.db_fallback'), 'warning');
         this.loadDataFromLocalStorage();
       }
     } else {
@@ -347,12 +350,12 @@ export class GalaxyService {
       });
       if (error) {
         console.error(error);
-        this.showToast('Error updating sector in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast(`Sector '${sector.name}' synced successfully`, 'success');
+        this.showToast(this.translate.instant('toasts.sector_synced', { name: sector.name }), 'success');
       }
     } else {
-      this.showToast(`Sector '${sector.name}' saved locally`, 'success');
+      this.showToast(this.translate.instant('toasts.sector_local', { name: sector.name }), 'success');
     }
   }
 
@@ -385,12 +388,12 @@ export class GalaxyService {
       });
       if (error) {
         console.error(error);
-        this.showToast('Error syncing system in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast(`System '${sys.name}' synced successfully`, 'success');
+        this.showToast(this.translate.instant('toasts.system_synced', { name: sys.name }), 'success');
       }
     } else {
-      this.showToast(`System '${sys.name}' saved locally`, 'success');
+      this.showToast(this.translate.instant('toasts.system_local', { name: sys.name }), 'success');
     }
   }
 
@@ -419,12 +422,12 @@ export class GalaxyService {
       });
       if (error) {
         console.error(error);
-        this.showToast('Error syncing planet in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast(`Planet '${planet.name}' synced successfully`, 'success');
+        this.showToast(this.translate.instant('toasts.planet_synced', { name: planet.name }), 'success');
       }
     } else {
-      this.showToast(`Planet '${planet.name}' saved locally`, 'success');
+      this.showToast(this.translate.instant('toasts.planet_local', { name: planet.name }), 'success');
     }
   }
 
@@ -451,12 +454,12 @@ export class GalaxyService {
       });
       if (error) {
         console.error(error);
-        this.showToast('Error syncing space station in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast(`Space Station '${station.name}' synced successfully`, 'success');
+        this.showToast(this.translate.instant('toasts.station_synced', { name: station.name }), 'success');
       }
     } else {
-      this.showToast(`Space Station '${station.name}' saved locally`, 'success');
+      this.showToast(this.translate.instant('toasts.station_local', { name: station.name }), 'success');
     }
   }
 
@@ -468,7 +471,7 @@ export class GalaxyService {
     );
 
     if (exists) {
-      this.showToast('This FTL connection already exists!', 'warning');
+      this.showToast(this.translate.instant('toasts.connection_exists'), 'warning');
       return;
     }
 
@@ -483,12 +486,12 @@ export class GalaxyService {
       });
       if (error) {
         console.error(error);
-        this.showToast('Error syncing connection in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast('FTL Jump Lane established on Supabase', 'success');
+        this.showToast(this.translate.instant('toasts.connection_synced'), 'success');
       }
     } else {
-      this.showToast('Connection saved locally', 'success');
+      this.showToast(this.translate.instant('toasts.connection_local'), 'success');
     }
   }
 
@@ -505,12 +508,12 @@ export class GalaxyService {
       const { error } = await this.supabaseClient.from('systems').delete().eq('id', sysId);
       if (error) {
         console.error(error);
-        this.showToast('Error deleting system in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast('System deleted from database', 'success');
+        this.showToast(this.translate.instant('toasts.system_deleted_db'), 'success');
       }
     } else {
-      this.showToast('System deleted locally', 'success');
+      this.showToast(this.translate.instant('toasts.system_deleted_local'), 'success');
     }
 
     if (this.selectedSystemId() === sysId) {
@@ -528,12 +531,12 @@ export class GalaxyService {
       const { error } = await this.supabaseClient.from('planets').delete().eq('id', planetId);
       if (error) {
         console.error(error);
-        this.showToast('Error deleting planet in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast('Planet deleted from database', 'success');
+        this.showToast(this.translate.instant('toasts.planet_deleted_db'), 'success');
       }
     } else {
-      this.showToast('Planet deleted locally', 'success');
+      this.showToast(this.translate.instant('toasts.planet_deleted_local'), 'success');
     }
 
     if (this.selectedPlanetId() === planetId) {
@@ -549,12 +552,12 @@ export class GalaxyService {
       const { error } = await this.supabaseClient.from('stations').delete().eq('id', stationId);
       if (error) {
         console.error(error);
-        this.showToast('Error deleting space station in Supabase', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       } else {
-        this.showToast('Space station deleted from database', 'success');
+        this.showToast(this.translate.instant('toasts.station_deleted_db'), 'success');
       }
     } else {
-      this.showToast('Space station deleted locally', 'success');
+      this.showToast(this.translate.instant('toasts.station_deleted_local'), 'success');
     }
 
     if (this.selectedStationId() === stationId) {
@@ -585,13 +588,13 @@ export class GalaxyService {
         await this.supabaseClient.from('stations').delete().neq('id', '');
         await this.supabaseClient.from('systems').delete().neq('id', '');
         await this.supabaseClient.from('sectors').delete().neq('id', '');
-        this.showToast('Supabase Database Cleaned', 'success');
+        this.showToast(this.translate.instant('toasts.db_cleaned'), 'success');
       } catch (e) {
         console.error(e);
-        this.showToast('Error wiping Supabase database tables', 'error');
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
       }
     } else {
-      this.showToast('Local database wiped clean', 'success');
+      this.showToast(this.translate.instant('toasts.db_wiped_local'), 'success');
     }
   }
 
@@ -661,7 +664,7 @@ export class GalaxyService {
     }
 
     if (startId === endId) {
-      this.showToast('Starting and destination systems are the same!', 'warning');
+      this.showToast(this.translate.instant('toasts.same_systems'), 'warning');
       this.calculatedRoute.set(null);
       return;
     }
@@ -738,7 +741,7 @@ export class GalaxyService {
     path.reverse();
 
     if (path.length <= 1 || path[0] !== startId) {
-      this.showToast('No FTL jump connection path found between these star systems.', 'error');
+      this.showToast(this.translate.instant('toasts.no_route'), 'error');
       this.calculatedRoute.set(null);
       return;
     }
@@ -767,7 +770,7 @@ export class GalaxyService {
       steps: steps
     });
 
-    this.showToast('FTL route calculated and highlighted!', 'success');
+    this.showToast(this.translate.instant('toasts.route_calculated'), 'success');
   }
 
   // --- LOCAL STORAGE HELPERS ---

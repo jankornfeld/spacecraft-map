@@ -674,3 +674,39 @@ body.admin-mode form.admin-only {
   cursor: pointer;
   font-size: 1.1rem;
 }
+
+/* Language Selector pill switch */
+.lang-selector {
+  display: flex;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+  backdrop-filter: blur(4px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.lang-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lang-btn.active {
+  background: var(--accent-blue);
+  color: white;
+  box-shadow: 0 0 10px var(--accent-blue-glow);
+}

@@ -1,28 +1,34 @@
 <!-- Place Mode Banner notification -->
 <div id="place-banner" class="banner" [class.active]="isPlaceMode() || isSectorPinMode()">
   @if (isPlaceMode()) {
-    <span><strong>Place Mode Active:</strong> Double-click anywhere on the map to place a star system.</span>
+    <span><strong>{{ 'place_banner.place_mode' | translate }}</strong> {{ 'place_banner.place_mode_desc' | translate }}</span>
   } @else if (isSectorPinMode()) {
-    <span><strong>Sector Pin Mode Active:</strong> Click on the map to add boundary points.</span>
+    <span><strong>{{ 'place_banner.sector_pin_mode' | translate }}</strong> {{ 'place_banner.sector_pin_mode_desc' | translate }}</span>
   }
-  <button (click)="cancelModes()" class="btn btn-sec btn-sm" style="color: var(--accent-red)">Cancel</button>
+  <button (click)="cancelModes()" class="btn btn-sec btn-sm" style="color: var(--accent-red)">{{ 'place_banner.cancel' | translate }}</button>
 </div>
 
 <div id="app-layout" [class.details-open]="galaxyService.selectedSystem() !== null">
 
   <!-- Top Header -->
   <header>
-    <h1>🌌 SpaceCraft Galaxy Map</h1>
+    <h1>{{ 'app_title' | translate }}</h1>
     <div class="header-actions">
+      <!-- Language Pill Toggler -->
+      <div class="lang-selector">
+        <button class="lang-btn" [class.active]="translate.currentLang() === 'de'" (click)="setLang('de')">DE</button>
+        <button class="lang-btn" [class.active]="translate.currentLang() === 'en'" (click)="setLang('en')">EN</button>
+      </div>
+
       <span id="connection-status"
-            [class]="galaxyService.connectionStatusClass()">{{ galaxyService.connectionStatusText() }}</span>
+            [class]="galaxyService.connectionStatusClass()">{{ galaxyService.connectionStatusText() | translate }}</span>
       @if (galaxyService.isAdmin()) {
-        <span id="admin-status-badge" class="admin-badge">Admin Mode</span>
+        <span id="admin-status-badge" class="admin-badge">{{ 'admin.badge' | translate }}</span>
       }
       @if (!galaxyService.isAdmin()) {
-        <button id="login-nav-btn" class="btn btn-sec btn-sm" (click)="isLoginModalOpen.set(true)">Admin Login</button>
+        <button id="login-nav-btn" class="btn btn-sec btn-sm" (click)="isLoginModalOpen.set(true)">{{ 'admin.login' | translate }}</button>
       } @else {
-        <button id="logout-nav-btn" class="btn btn-danger btn-sm" (click)="logout()">Logout</button>
+        <button id="logout-nav-btn" class="btn btn-danger btn-sm" (click)="logout()">{{ 'admin.logout' | translate }}</button>
       }
     </div>
   </header>
@@ -31,19 +37,20 @@
   <aside>
     <div class="sidebar-tabs">
       <button class="tab-btn" [class.active]="activeTab() === 'search-tab'" (click)="activeTab.set('search-tab')">
-        Systems
+        {{ 'tabs.systems' | translate }}
       </button>
       <button class="tab-btn" [class.active]="activeTab() === 'sectors-tab'" (click)="activeTab.set('sectors-tab')">
-        Sectors
+        {{ 'tabs.sectors' | translate }}
       </button>
-      <button class="tab-btn" [class.active]="activeTab() === 'route-tab'" (click)="activeTab.set('route-tab')">Route
+      <button class="tab-btn" [class.active]="activeTab() === 'route-tab'" (click)="activeTab.set('route-tab')">
+        {{ 'tabs.route' | translate }}
       </button>
       @if (galaxyService.isAdmin()) {
         <button class="tab-btn" [class.active]="activeTab() === 'admin-tab'" (click)="activeTab.set('admin-tab')">
-          Creator
+          {{ 'tabs.creator' | translate }}
         </button>
         <button class="tab-btn" [class.active]="activeTab() === 'settings-tab'" (click)="activeTab.set('settings-tab')">
-          DB & Settings
+          {{ 'tabs.settings' | translate }}
         </button>
       }
     </div>
@@ -53,15 +60,15 @@
       <!-- Tab 1: Search & Filter -->
       <div id="search-tab" class="tab-pane" [class.active]="activeTab() === 'search-tab'">
         <div class="form-group">
-          <label for="search-input">Search Systems</label>
+          <label for="search-input">{{ 'search.title' | translate }}</label>
           <input type="text" id="search-input" [value]="galaxyService.searchQuery()" (input)="onSearchInput($event)"
-                 placeholder="Type name, designation, or sector...">
+                 [placeholder]="'search.placeholder' | translate">
         </div>
         <div class="form-group">
-          <label for="resource-filter">Filter by Resource</label>
+          <label for="resource-filter">{{ 'search.filter_resource' | translate }}</label>
           <select id="resource-filter" [value]="galaxyService.resourceFilter()"
                   (change)="onResourceFilterChange($event)">
-            <option value="">All Resources</option>
+            <option value="">{{ 'search.all_resources' | translate }}</option>
             @for (res of allUniqueResources(); track res) {
               <option [value]="res">{{ res }}</option>
             }
@@ -70,7 +77,7 @@
 
         <h3
           style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; margin-top: 10px;">
-          Results (<span>{{ galaxyService.filteredSystems().length }}</span>)
+          {{ 'search.results_count' | translate: { count: galaxyService.filteredSystems().length } }}
         </h3>
         <div id="search-results-list" class="search-results">
           @for (sys of galaxyService.filteredSystems(); track sys.id) {
@@ -82,17 +89,18 @@
                       [style.background-color]="getStarBadgeBg(sys.starColor)"
                       [style.color]="getStarBadgeColor(sys.starColor)"
                       [style.border-color]="getStarBadgeBorder(sys.starColor)">
-                  {{ sys.starColor && sys.starColor.startsWith('#') ? 'Custom' : sys.starColor }}
+                  {{ sys.starColor && sys.starColor.startsWith('#') ? ('creator.star_color' | translate) : sys.starColor }}
                 </span>
               </div>
-              <div class="result-subtitle">Sector: {{ getSectorName(sys.sectorId) }} •
-                Code: {{ sys.designation || 'None' }}
+              <div class="result-subtitle">
+                {{ 'tabs.sectors' | translate }}: {{ getSectorName(sys.sectorId) }} •
+                {{ 'creator.designation' | translate }}: {{ sys.designation || ('details.no_designation' | translate) }}
               </div>
             </div>
           } @empty {
             <div
               style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">
-              No star systems found.
+              {{ 'search.no_systems' | translate }}
             </div>
           }
         </div>
@@ -101,9 +109,8 @@
       <!-- Tab 2: Sectors Panel -->
       <div id="sectors-tab" class="tab-pane" [class.active]="activeTab() === 'sectors-tab'">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h3 style="font-family: var(--font-mono); font-size: 0.95rem;">Sectors</h3>
-          <button id="toggle-all-sectors-btn" class="btn btn-sec btn-sm" (click)="toggleAllSectors()">Toggle All
-          </button>
+          <h3 style="font-family: var(--font-mono); font-size: 0.95rem;">{{ 'sectors_panel.title' | translate }}</h3>
+          <button id="toggle-all-sectors-btn" class="btn btn-sec btn-sm" (click)="toggleAllSectors()">{{ 'sectors_panel.toggle_all' | translate }}</button>
         </div>
         <div id="sectors-list" style="display: flex; flex-direction: column; gap: 10px;">
           @for (sec of galaxyService.sectors(); track sec.id) {
@@ -112,7 +119,7 @@
                 <div class="result-header">
                   <span>{{ sec.name }}</span>
                 </div>
-                <div class="result-subtitle">{{ getSectorSystemCount(sec.id) }} systems</div>
+                <div class="result-subtitle">{{ 'sectors_panel.systems_count' | translate: { count: getSectorSystemCount(sec.id) } }}</div>
               </div>
               <div class="sector-item-toggle">
                 <input type="checkbox" [checked]="isSectorVisible(sec.id)"
@@ -122,7 +129,7 @@
           } @empty {
             <div
               style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; text-align: center; padding: 20px 0;">
-              No sectors found.
+              {{ 'sectors_panel.no_sectors' | translate }}
             </div>
           }
         </div>
@@ -131,50 +138,48 @@
       <!-- Tab 3: Route Planner -->
       <div id="route-tab" class="tab-pane" [class.active]="activeTab() === 'route-tab'">
         <div class="form-group">
-          <label for="route-start-select">Starting System</label>
+          <label for="route-start-select">{{ 'route_planner.start_system' | translate }}</label>
           <select id="route-start-select" [value]="galaxyService.routeStartSystemId() || ''"
                   (change)="onRouteStartChange($event)">
-            <option value="">Select Origin...</option>
+            <option value="">{{ 'route_planner.select_origin' | translate }}</option>
             @for (sys of sortedSystems(); track sys.id) {
               <option [value]="sys.id">{{ sys.name }}</option>
             }
           </select>
         </div>
         <div class="form-group">
-          <label for="route-end-select">Destination System</label>
+          <label for="route-end-select">{{ 'route_planner.end_system' | translate }}</label>
           <select id="route-end-select" [value]="galaxyService.routeEndSystemId() || ''"
                   (change)="onRouteEndChange($event)">
-            <option value="">Select Destination...</option>
+            <option value="">{{ 'route_planner.select_destination' | translate }}</option>
             @for (sys of sortedSystems(); track sys.id) {
               <option [value]="sys.id">{{ sys.name }}</option>
             }
           </select>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button id="calculate-route-btn" class="btn" (click)="galaxyService.calculateRoutePath()">Calculate FTL Path
-          </button>
-          <button id="clear-route-btn" class="btn btn-sec" (click)="clearRoute()">Clear</button>
+          <button id="calculate-route-btn" class="btn" (click)="galaxyService.calculateRoutePath()">{{ 'route_planner.calculate_btn' | translate }}</button>
+          <button id="clear-route-btn" class="btn btn-sec" (click)="clearRoute()">{{ 'route_planner.clear_btn' | translate }}</button>
         </div>
 
         @if (galaxyService.calculatedRoute(); as route) {
           <div id="route-details"
                style="display: block; margin-top: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-light); padding: 14px; border-radius: 8px;">
             <h4
-              style="font-family: var(--font-mono); color: var(--accent-emerald); font-size: 0.95rem; margin-bottom: 8px;">
-              Path Calculated
+               style="font-family: var(--font-mono); color: var(--accent-emerald); font-size: 0.95rem; margin-bottom: 8px;">
+              {{ 'route_planner.path_calculated' | translate }}
             </h4>
-            <p style="font-size: 0.85rem; margin-bottom: 6px;">Total Jumps: <strong>{{ route.jumps }}</strong></p>
-            <p style="font-size: 0.85rem; margin-bottom: 12px;">Total FTL Cost: <strong>{{ route.cost }}</strong></p>
+            <p style="font-size: 0.85rem; margin-bottom: 6px;">{{ 'route_planner.total_jumps' | translate: { count: route.jumps } }}</p>
+            <p style="font-size: 0.85rem; margin-bottom: 12px;">{{ 'route_planner.total_cost' | translate: { count: route.cost } }}</p>
 
             <h5
               style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;">
-              Navigation Steps:
+              {{ 'route_planner.navigation_steps' | translate }}
             </h5>
             <ol id="route-steps-list"
                 style="padding-left: 16px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
               @for (step of route.steps; track $index) {
-                <li>Jump to <strong>{{ step.toName }}</strong> <span
-                  style="color:var(--text-secondary)">({{ step.fromName }} ➔ {{ step.toName }})</span></li>
+                <li>{{ 'route_planner.jump_step' | translate: { to: step.toName, from: step.fromName } }}</li>
               }
             </ol>
           </div>
@@ -187,10 +192,9 @@
           <!-- Locked view -->
           <div id="creator-locked-message" style="text-align: center; padding: 40px 10px;">
             <span style="font-size: 3rem;">🔒</span>
-            <h3 style="font-family: var(--font-mono); margin-top: 10px;">Access Denied</h3>
+            <h3 style="font-family: var(--font-mono); margin-top: 10px;">{{ 'admin.locked_title' | translate }}</h3>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">
-              Please log in as an administrator from the top-right button to create and edit sectors, planets, and
-              connections.
+              {{ 'admin.locked_desc' | translate }}
             </p>
           </div>
         } @else {
@@ -202,44 +206,44 @@
               style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
               <h3
                 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">
-                1. Create Sector
+                {{ 'creator.create_sector' | translate }}
               </h3>
               <form (submit)="createSector($event)">
                 <div class="form-group">
-                  <label for="sector-id-input">Sector ID</label>
+                  <label for="sector-id-input">{{ 'creator.sector_id' | translate }}</label>
                   <input type="text" id="sector-id-input" name="sectorId" [(ngModel)]="sectorFormId"
-                         placeholder="e.g. sector-custom" required>
+                         [placeholder]="'creator.sector_id_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="sector-name-input">Sector Name</label>
+                  <label for="sector-name-input">{{ 'creator.sector_name' | translate }}</label>
                   <input type="text" id="sector-name-input" name="sectorName" [(ngModel)]="sectorFormName"
-                         placeholder="e.g. Orion Nebula" required>
+                         [placeholder]="'creator.sector_name_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="sector-color-input">Sector Theme Color</label>
+                  <label for="sector-color-input">{{ 'creator.sector_color' | translate }}</label>
                   <input type="color" id="sector-color-input" name="sectorColor" [(ngModel)]="sectorColorInput"
                          style="height: 40px; padding: 2px; cursor: pointer;">
                 </div>
                 <div class="form-group">
-                  <label for="sector-polygon-input">Boundary Polygon coordinates</label>
+                  <label for="sector-polygon-input">{{ 'creator.sector_coords' | translate }}</label>
                   <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                     <button type="button" class="btn btn-sec btn-sm" style="flex: 2;" (click)="toggleSectorPinMode()">
-                      📍 {{ isSectorPinMode() ? 'Stop Pinning' : 'Pin Points on Map' }}
+                      📍 {{ (isSectorPinMode() ? 'creator.stop_pinning' : 'creator.pin_points') | translate }}
                     </button>
                     @if (isSectorPinMode() && tempSectorPoints.length > 0) {
                       <button type="button" class="btn btn-sec btn-sm" style="flex: 1;" (click)="undoSectorPoint()">
-                        Undo
+                        {{ 'creator.undo' | translate }}
                       </button>
                       <button type="button" class="btn btn-sec btn-sm" style="flex: 1; color: var(--accent-red);"
-                              (click)="clearSectorPoints()">Clear
+                              (click)="clearSectorPoints()">{{ 'creator.clear' | translate }}
                       </button>
                     }
                   </div>
                   <textarea id="sector-polygon-input" name="sectorPolygon" [(ngModel)]="sectorPolygonInput" rows="3"
                             placeholder="[[X1,Y1],[X2,Y2],...]" required></textarea>
-                  <span style="font-size: 0.75rem; color: var(--text-muted)">Define boundaries in X/Y coords to draw background overlays.</span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted)">{{ 'creator.coords_desc' | translate }}</span>
                 </div>
-                <button type="submit" class="btn btn-sm">Save Sector</button>
+                <button type="submit" class="btn btn-sm">{{ 'creator.save_sector' | translate }}</button>
               </form>
             </div>
 
@@ -248,56 +252,55 @@
               style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
               <h3
                 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">
-                2. Create Star System
+                {{ 'creator.create_system' | translate }}
               </h3>
               <div style="margin-bottom: 14px;">
-                <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="togglePlaceMode()">📍 Click Map to
-                  Select Coordinates
+                <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="togglePlaceMode()">📍 {{ 'creator.select_coords_btn' | translate }}
                 </button>
               </div>
               <form (submit)="createSystem($event)">
                 <div class="form-group">
-                  <label for="system-id-input">System ID</label>
+                  <label for="system-id-input">{{ 'creator.system_id' | translate }}</label>
                   <input type="text" id="system-id-input" name="systemId" [(ngModel)]="systemFormId"
-                         placeholder="e.g. system-orion-a" required>
+                         [placeholder]="'creator.system_id_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="system-name-input">System Name</label>
+                  <label for="system-name-input">{{ 'creator.system_name' | translate }}</label>
                   <input type="text" id="system-name-input" name="systemName" [(ngModel)]="systemFormName"
-                         placeholder="e.g. Orion Alpha" required>
+                         [placeholder]="'creator.system_name_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="system-designation-input">Designation Code</label>
+                  <label for="system-designation-input">{{ 'creator.designation' | translate }}</label>
                   <input type="text" id="system-designation-input" name="systemDesignation"
-                         [(ngModel)]="systemFormDesignation" placeholder="e.g. OR-912A">
+                         [(ngModel)]="systemFormDesignation" [placeholder]="'creator.designation_placeholder' | translate">
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                   <div class="form-group">
-                    <label for="system-x-input">Map X Coord</label>
+                    <label for="system-x-input">{{ 'creator.coord_x' | translate }}</label>
                     <input type="number" step="any" id="system-x-input" name="systemX" [(ngModel)]="systemFormX"
                            required>
                   </div>
                   <div class="form-group">
-                    <label for="system-y-input">Map Y Coord</label>
+                    <label for="system-y-input">{{ 'creator.coord_y' | translate }}</label>
                     <input type="number" step="any" id="system-y-input" name="systemY" [(ngModel)]="systemFormY"
                            required>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="system-sector-select">Assign to Sector</label>
+                  <label for="system-sector-select">{{ 'creator.assign_sector' | translate }}</label>
                   <select id="system-sector-select" name="systemSectorId" [(ngModel)]="systemFormSectorId" required>
-                    <option value="">Select Sector...</option>
+                    <option value="">{{ 'creator.select_sector' | translate }}</option>
                     @for (s of galaxyService.sectors(); track s.id) {
                       <option [value]="s.id">{{ s.name }}</option>
                     }
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="system-star-color-input">Star Color</label>
+                  <label for="system-star-color-input">{{ 'creator.star_color' | translate }}</label>
                   <input type="color" id="system-star-color-input" name="systemStarColor"
                          [(ngModel)]="systemFormStarColor" style="height: 40px; padding: 2px; cursor: pointer;">
                 </div>
-                <button type="submit" class="btn btn-sm">Save Star System</button>
+                <button type="submit" class="btn btn-sm">{{ 'creator.save_system' | translate }}</button>
               </form>
             </div>
 
@@ -306,29 +309,29 @@
               style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
               <h3
                 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-blue);">
-                3. Create Planet
+                {{ 'creator.create_planet' | translate }}
               </h3>
               <form (submit)="createPlanet($event)">
                 <div class="form-group">
-                  <label for="planet-id-input">Planet ID</label>
+                  <label for="planet-id-input">{{ 'creator.planet_id' | translate }}</label>
                   <input type="text" id="planet-id-input" name="planetId" [(ngModel)]="planetFormId"
-                         placeholder="e.g. planet-orion-i" required>
+                         [placeholder]="'creator.planet_id_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="planet-name-input">Planet Name</label>
+                  <label for="planet-name-input">{{ 'creator.planet_name' | translate }}</label>
                   <input type="text" id="planet-name-input" name="planetName" [(ngModel)]="planetFormName"
-                         placeholder="e.g. Orion-I" required>
+                         [placeholder]="'creator.planet_name_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="planet-system-select">Assign to Star System</label>
+                  <label for="planet-system-select">{{ 'creator.assign_system' | translate }}</label>
                   <select id="planet-system-select" name="planetSystemId" [(ngModel)]="planetFormSystemId" required>
-                    <option value="">Select System...</option>
+                    <option value="">{{ 'creator.select_system' | translate }}</option>
                     @for (s of sortedSystems(); track s.id) {
                       <option [value]="s.id">{{ s.name }}</option>
                     }
                   </select>
                 </div>
-                <button type="submit" class="btn btn-sm">Save Planet</button>
+                <button type="submit" class="btn btn-sm">{{ 'creator.save_planet' | translate }}</button>
               </form>
             </div>
 
@@ -337,34 +340,34 @@
               style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
               <h3
                 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-purple);">
-                3b. Create Space Station
+                {{ 'creator.create_station' | translate }}
               </h3>
               <form (submit)="createStation($event)">
                 <div class="form-group">
-                  <label for="station-id-input">Station ID</label>
+                  <label for="station-id-input">{{ 'creator.station_id' | translate }}</label>
                   <input type="text" id="station-id-input" name="stationId" [(ngModel)]="stationFormId"
-                         placeholder="e.g. station-orion-alpha" required>
+                         [placeholder]="'creator.station_id_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="station-name-input">Station Name</label>
+                  <label for="station-name-input">{{ 'creator.station_name' | translate }}</label>
                   <input type="text" id="station-name-input" name="stationName" [(ngModel)]="stationFormName"
-                         placeholder="e.g. Orion Alpha" required>
+                         [placeholder]="'creator.station_name_placeholder' | translate" required>
                 </div>
                 <div class="form-group">
-                  <label for="station-owner-input">Owner / Faction</label>
+                  <label for="station-owner-input">{{ 'creator.owner_faction' | translate }}</label>
                   <input type="text" id="station-owner-input" name="stationOwner" [(ngModel)]="stationFormOwner"
-                         placeholder="e.g. Independent">
+                         [placeholder]="'creator.owner_faction_placeholder' | translate">
                 </div>
                 <div class="form-group">
-                  <label for="station-system-select">Assign to Star System</label>
+                  <label for="station-system-select">{{ 'creator.assign_system' | translate }}</label>
                   <select id="station-system-select" name="stationSystemId" [(ngModel)]="stationFormSystemId" required>
-                    <option value="">Select System...</option>
+                    <option value="">{{ 'creator.select_system' | translate }}</option>
                     @for (s of sortedSystems(); track s.id) {
                       <option [value]="s.id">{{ s.name }}</option>
                     }
                   </select>
                 </div>
-                <button type="submit" class="btn btn-sm">Save Space Station</button>
+                <button type="submit" class="btn btn-sm">{{ 'creator.save_station' | translate }}</button>
               </form>
             </div>
 
@@ -373,32 +376,32 @@
               style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01);">
               <h3
                 style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-emerald);">
-                4. Add FTL Connections
+                {{ 'creator.add_connection' | translate }}
               </h3>
               <form (submit)="createConnection($event)">
                 <div class="form-group">
-                  <label for="conn-from-select">System A</label>
+                  <label for="conn-from-select">{{ 'creator.system_a' | translate }}</label>
                   <select id="conn-from-select" name="connFrom" [(ngModel)]="connFormFromId" required>
-                    <option value="">Select System...</option>
+                    <option value="">{{ 'creator.select_system' | translate }}</option>
                     @for (s of sortedSystems(); track s.id) {
                       <option [value]="s.id">{{ s.name }}</option>
                     }
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="conn-to-select">System B</label>
+                  <label for="conn-to-select">{{ 'creator.system_b' | translate }}</label>
                   <select id="conn-to-select" name="connTo" [(ngModel)]="connFormToId" required>
-                    <option value="">Select System...</option>
+                    <option value="">{{ 'creator.select_system' | translate }}</option>
                     @for (s of sortedSystems(); track s.id) {
                       <option [value]="s.id">{{ s.name }}</option>
                     }
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="conn-cost-input">Jump Cost (FTL units)</label>
+                  <label for="conn-cost-input">{{ 'creator.jump_cost' | translate }}</label>
                   <input type="number" id="conn-cost-input" name="connCost" [(ngModel)]="connFormCost" min="1" required>
                 </div>
-                <button type="submit" class="btn btn-sm">Save Connection</button>
+                <button type="submit" class="btn btn-sm">{{ 'creator.save_connection' | translate }}</button>
               </form>
             </div>
 
@@ -407,21 +410,19 @@
               style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.01); display: flex; flex-direction: column; gap: 10px;">
               <h3
                 style="font-family: var(--font-mono); font-size: 0.95rem; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; color: var(--accent-yellow);">
-                5. Import / Export Database
+                {{ 'creator.import_export' | translate }}
               </h3>
-              <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="exportJSON()">💾 Export Custom Galaxy
-                JSON
+              <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="exportJSON()">{{ 'creator.export_btn' | translate }}
               </button>
 
               <div style="position: relative;">
-                <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="importJsonTrigger()">📂 Import Galaxy
-                  JSON
+                <button class="btn btn-sec btn-sm" style="width: 100%;" (click)="importJsonTrigger()">{{ 'creator.import_btn' | translate }}
                 </button>
                 <input type="file" id="import-json-file-input" (change)="importJSON($event)" accept=".json"
                        style="display: none;">
               </div>
 
-              <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="wipeDb()">🗑️ WIPE Map & Start Blank
+              <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="wipeDb()">{{ 'creator.wipe_btn' | translate }}
               </button>
             </div>
 
@@ -436,28 +437,27 @@
           style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); margin-bottom: 20px;">
           <h3
             style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; color: var(--accent-yellow);">
-            Supabase Integration
+            {{ 'settings.supabase_title' | translate }}
           </h3>
           <form (submit)="saveDbConfig($event)">
             <div class="form-group">
-              <label for="db-url-input">Supabase Project URL</label>
+              <label for="db-url-input">{{ 'settings.db_url' | translate }}</label>
               <input type="url" id="db-url-input" name="dbUrl" [(ngModel)]="dbUrlInput"
                      placeholder="https://your-project.supabase.co">
             </div>
             <div class="form-group">
-              <label for="db-key-input">Supabase Anon API Key</label>
+              <label for="db-key-input">{{ 'settings.db_key' | translate }}</label>
               <input type="password" id="db-key-input" name="dbKey" [(ngModel)]="dbKeyInput"
                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
             </div>
             <div style="display: flex; gap: 8px;">
-              <button type="submit" class="btn btn-sm">Save Connection</button>
-              <button type="button" class="btn btn-sec btn-sm" (click)="galaxyService.disconnectDb()">Disconnect
+              <button type="submit" class="btn btn-sm">{{ 'settings.save_connection' | translate }}</button>
+              <button type="button" class="btn btn-sec btn-sm" (click)="galaxyService.disconnectDb()">{{ 'settings.disconnect' | translate }}
               </button>
             </div>
           </form>
           <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px; line-height: 1.3;">
-            Leave blank to run in <strong>Offline Local-Only Sandbox Mode</strong>. When blank, the app loads from the
-            sample template layout, and edits are stored inside your browser's local cache.
+            {{ 'settings.offline_desc' | translate }}
           </p>
         </div>
 
@@ -466,40 +466,40 @@
           style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
           <h3
             style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 12px; color: var(--accent-blue);">
-            Map Controls
+            {{ 'settings.controls_title' | translate }}
           </h3>
 
           <div class="form-group"
                style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <label for="toggle-grid-checkbox" style="cursor: pointer;">Show Coordinate Grid</label>
+            <label for="toggle-grid-checkbox" style="cursor: pointer;">{{ 'settings.show_grid' | translate }}</label>
             <input type="checkbox" id="toggle-grid-checkbox" [(ngModel)]="showGrid"
                    style="width: auto; cursor: pointer;">
           </div>
 
           <div class="form-group"
                style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <label for="toggle-sectors-checkbox" style="cursor: pointer;">Show Sector Boundaries</label>
+            <label for="toggle-sectors-checkbox" style="cursor: pointer;">{{ 'settings.show_sectors' | translate }}</label>
             <input type="checkbox" id="toggle-sectors-checkbox" [(ngModel)]="showSectors"
                    style="width: auto; cursor: pointer;">
           </div>
 
           <div class="form-group"
                style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <label for="toggle-labels-checkbox" style="cursor: pointer;">Show Planet Names</label>
+            <label for="toggle-labels-checkbox" style="cursor: pointer;">{{ 'settings.show_labels' | translate }}</label>
             <input type="checkbox" id="toggle-labels-checkbox" [(ngModel)]="showLabels"
                    style="width: auto; cursor: pointer;">
           </div>
 
           <div class="form-group" style="margin-bottom: 12px;">
-            <label for="color-mode-select">Planet Coloring Mode</label>
+            <label for="color-mode-select">{{ 'settings.planet_color_mode' | translate }}</label>
             <select id="color-mode-select" [(ngModel)]="planetColorMode">
-              <option value="sector">By Sector Boundary Color</option>
-              <option value="star">By Star Temperature / Type</option>
+              <option value="sector">{{ 'settings.color_by_sector' | translate }}</option>
+              <option value="star">{{ 'settings.color_by_star' | translate }}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="star-size-slider">Star Marker Size: <span>{{ starSize() }}px</span></label>
+            <label for="star-size-slider">{{ 'settings.star_size' | translate: { size: starSize() } }}</label>
             <input type="range" id="star-size-slider" min="6" max="24" [value]="starSize()"
                    (input)="onStarSizeChange($event)" style="cursor: pointer;">
           </div>
@@ -510,10 +510,10 @@
           style="border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); margin-top: 20px;">
           <h3
             style="font-family: var(--font-mono); font-size: 0.95rem; margin-bottom: 10px; color: var(--accent-purple);">
-            SST Game Save Scanner
+            {{ 'settings.scanner_title' | translate }}
           </h3>
           <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.3;">
-            Import stars, seeds, and sector presets directly by uploading your SpaceCraft save files.
+            {{ 'settings.scanner_desc' | translate }}
           </p>
           <div id="dropzone"
                (click)="sstFileTrigger()"
@@ -524,8 +524,8 @@
                [style.background]="dropzoneBg"
                style="border: 2px dashed var(--border-light); padding: 24px 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: var(--transition-smooth);">
             <span style="font-size: 2rem;">📁</span>
-            <p style="font-size: 0.8rem; font-weight: 600; margin-top: 8px;">Drag & Drop `.sst` files here</p>
-            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">Or click to choose save files</p>
+            <p style="font-size: 0.8rem; font-weight: 600; margin-top: 8px;">{{ 'settings.drag_drop' | translate }}</p>
+            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">{{ 'settings.click_choose' | translate }}</p>
             <input type="file" id="sst-file-input" (change)="onSstFilesSelected($event)" accept=".sst,.sav" multiple
                    style="display: none;">
           </div>
@@ -676,7 +676,7 @@
         <div>
           <h2 style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700;">{{ sys.name }}</h2>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-family: var(--font-mono);">
-            {{ sys.designation || 'NO DESIGNATION' }}
+            {{ sys.designation || ('details.no_designation' | translate) }}
           </span>
         </div>
         <button class="control-btn" style="width: 24px; height: 24px; font-size: 0.8rem; border-radius: 4px;"
@@ -685,25 +685,12 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
-        <div>Sector: <span style="font-weight: 600;">{{ getSectorName(sys.sectorId) }}</span></div>
-        <!--<div>Coordinates: <span
-          style="font-family: var(&#45;&#45;font-mono); color: var(&#45;&#45;text-secondary);">X: {{ sys.x.toFixed(1) }}
-          , Y: {{ sys.y.toFixed(1) }}</span></div>
-        <div>Star Classification:
-          <span class="badge" [class]="'badge-' + getStarColorClass(sys.starColor)"
-                [style.background-color]="getStarBadgeBg(sys.starColor)"
-                [style.color]="getStarBadgeColor(sys.starColor)"
-                [style.border-color]="getStarBadgeBorder(sys.starColor)">
-            {{ sys.starType.replace('Star', ' Star') }}
-          </span>
-        </div>-->
+        <div>{{ 'tabs.sectors' | translate }}: <span style="font-weight: 600;">{{ getSectorName(sys.sectorId) }}</span></div>
 
         <div style="display: flex; gap: 8px; margin: 4px 0;">
-          <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;" (click)="setRouteStart(sys.id)">Set as
-            Start
+          <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;" (click)="setRouteStart(sys.id)">{{ 'details.set_start' | translate }}
           </button>
-          <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;" (click)="setRouteEnd(sys.id)">Set as
-            Destination
+          <button class="btn btn-sec btn-sm" style="flex: 1; padding: 6px;" (click)="setRouteEnd(sys.id)">{{ 'details.set_destination' | translate }}
           </button>
         </div>
 
@@ -711,7 +698,7 @@
         <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 8px;">
           <label for="detail-planet-select"
                  style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-blue);">
-            Planets in System
+            {{ 'details.planets_in_system' | translate }}
           </label>
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
             <select id="detail-planet-select" style="flex: 1; padding: 6px;"
@@ -724,21 +711,21 @@
 
           @if (galaxyService.selectedSystemPlanets().length === 0) {
             <div id="no-planets-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">
-              No planets cataloged in this system.
+              {{ 'details.no_planets' | translate }}
             </div>
           }
 
           <!-- Planet Details Sub-Panel -->
           @if (galaxyService.selectedPlanet(); as planet) {
             <div id="planet-details-subpanel">
-              <div style="font-size: 0.85rem; margin-bottom: 8px;">
-                Designation: <span
-                style="font-family: var(--font-mono); color: var(--text-secondary);">{{ planet.designation || 'NO DESIGNATION' }}</span>
-              </div>
+              <!--<div style="font-size: 0.85rem; margin-bottom: 8px;">
+                {{ 'creator.designation' | translate }}: <span
+                style="font-family: var(&#45;&#45;font-mono); color: var(&#45;&#45;text-secondary);">{{ planet.designation || ('details.no_designation' | translate) }}</span>
+              </div>-->
 
               <!-- Resources Section -->
               <div style="margin-top: 12px;">
-                <label style="display: block; margin-bottom: 4px;">Extracted Resources</label>
+                <label style="display: block; margin-bottom: 4px;">{{ 'details.resources' | translate }}</label>
                 <div class="chips-container">
                   @for (r of planet.resources; track r) {
                     <span class="chip">
@@ -750,8 +737,8 @@
                   }
                 </div>
                 @if (planet.resources.length === 0) {
-                  <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; margin-top: 4px;">No
-                    planetary resources cataloged.
+                  <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; margin-top: 4px;">
+                    {{ 'details.no_resources' | translate }}
                   </div>
                 }
 
@@ -761,19 +748,19 @@
                         style="margin-top: 10px; display: flex; gap: 6px;">
                     <select name="newResource" [(ngModel)]="newPlanetResourceVal"
                             style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
-                      <option value="">Select Resource...</option>
+                      <option value="">{{ 'details.select_resource' | translate }}</option>
                       @for (res of galaxyService.ALL_RESOURCES; track res) {
                         <option [value]="res">{{ res }}</option>
                       }
                     </select>
-                    <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
+                    <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
                   </form>
                 }
               </div>
 
               <!-- Deposits Section -->
               <div style="margin-top: 12px;">
-                <label style="display: block; margin-bottom: 4px;">Planetary Deposits</label>
+                <label style="display: block; margin-bottom: 4px;">{{ 'details.deposits' | translate }}</label>
                 <div class="chips-container">
                   @for (d of planet.deposits; track d) {
                     <span class="chip">
@@ -785,8 +772,8 @@
                   }
                 </div>
                 @if (planet.deposits.length === 0) {
-                  <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; margin-top: 4px;">No
-                    resource deposits recorded.
+                  <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; margin-top: 4px;">
+                    {{ 'details.no_deposits' | translate }}
                   </div>
                 }
 
@@ -796,19 +783,19 @@
                         style="margin-top: 10px; display: flex; gap: 6px;">
                     <select name="newDeposit" [(ngModel)]="newPlanetDepositVal"
                             style="padding: 6px 10px; font-size: 0.8rem; flex: 1;" required>
-                      <option value="">Select Deposit...</option>
+                      <option value="">{{ 'details.select_deposit' | translate }}</option>
                       @for (dep of galaxyService.ALL_DEPOSITS; track dep) {
                         <option [value]="dep">{{ dep }}</option>
                       }
                     </select>
-                    <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
+                    <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
                   </form>
                 }
               </div>
 
               <!-- Bases Section -->
               <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-                <label style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-emerald);">Established Bases</label>
+                <label style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-emerald);">{{ 'details.bases' | translate }}</label>
 
                 @if (planet.bases && planet.bases.length > 0) {
                   <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -828,14 +815,16 @@
 
                         <!-- Base Owner -->
                         <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px;">
-                          Owner: <span style="font-weight: 500; color: var(--text-primary);">{{ base.owner }}</span>
+                          {{ 'creator.owner_faction' | translate }}: <span style="font-weight: 500; color: var(--text-primary);">{{ base.owner }}</span>
                         </div>
 
                         <!-- Base Productions list -->
                         <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
                           @for (prod of base.productions; track $index; let prodIndex = $index) {
                             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.02);">
-                              <span style="color: var(--text-secondary);">Produces: <strong style="color: var(--text-primary);">{{ prod.item }}</strong></span>
+                              <span style="color: var(--text-secondary);">
+                                {{ 'details.produces' | translate: { item: '' } }}<strong style="color: var(--text-primary);">{{ prod.item }}</strong>
+                              </span>
                               <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-weight: 600; color: var(--accent-emerald);">{{ prod.amountPerMinute }}/min</span>
                                 @if (galaxyService.isAdmin()) {
@@ -848,7 +837,7 @@
                               </div>
                             </div>
                           } @empty {
-                            <div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic; padding: 4px 0;">No production lines configured.</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic; padding: 4px 0;">{{ 'details.no_production' | translate }}</div>
                           }
                         </div>
 
@@ -856,8 +845,8 @@
                         @if (galaxyService.isAdmin()) {
                           <div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 8px;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center;">
-                              <input #prodItem type="text" placeholder="Produces (e.g. Iron Plate)" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;">
-                              <input #prodAmount type="number" placeholder="Qty/min" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;" min="1">
+                              <input #prodItem type="text" [placeholder]="'details.produces_placeholder' | translate" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;">
+                              <input #prodAmount type="number" [placeholder]="'details.qty_placeholder' | translate" style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;" min="1">
                               <button type="button" class="btn btn-sm btn-sec" style="padding: 4px 8px; width: auto; font-size: 0.75rem;"
                                       (click)="addBaseProduction(planet.id, baseIndex, prodItem.value, prodAmount.valueAsNumber); prodItem.value=''; prodAmount.value=''">
                                 +
@@ -869,24 +858,24 @@
                     }
                   </div>
                 } @else {
-                  <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">No bases established on this planet.</div>
+                  <div style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">{{ 'details.no_bases' | translate }}</div>
                 }
 
                 <!-- Add Base Form (Admin Only) -->
                 @if (galaxyService.isAdmin()) {
                   <form (submit)="addPlanetBase(planet.id, $event)" style="margin-top: 14px; padding: 10px; background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-light); border-radius: 8px;">
-                    <div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Add New Base</div>
+                    <div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">{{ 'details.add_base' | translate }}</div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
-                      <input type="text" name="baseName" [(ngModel)]="newBaseName" placeholder="Base Name (e.g. Outpost Alpha)" required style="padding: 6px 8px; font-size: 0.8rem;">
+                      <input type="text" name="baseName" [(ngModel)]="newBaseName" [placeholder]="'details.base_name_placeholder' | translate" required style="padding: 6px 8px; font-size: 0.8rem;">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
-                      <input type="text" name="baseOwner" [(ngModel)]="newBaseOwner" placeholder="Owner (e.g. Player)" required style="padding: 6px 8px; font-size: 0.8rem;">
+                      <input type="text" name="baseOwner" [(ngModel)]="newBaseOwner" [placeholder]="'details.owner_placeholder' | translate" required style="padding: 6px 8px; font-size: 0.8rem;">
                     </div>
 
                     <button type="submit" class="btn btn-sm" style="width: 100%; justify-content: center; padding: 6px;">
-                      Establish Base
+                      {{ 'details.establish_btn' | translate }}
                     </button>
                   </form>
                 }
@@ -895,8 +884,7 @@
               <!-- Delete Planet Button (Admin Only) -->
               @if (galaxyService.isAdmin()) {
                 <div style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-                  <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="deletePlanet(planet.id)">Delete
-                    Planet
+                  <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="deletePlanet(planet.id)">{{ 'details.delete_planet' | translate }}
                   </button>
                 </div>
               }
@@ -908,7 +896,7 @@
         <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 12px;">
           <label for="detail-station-select"
                  style="display: block; margin-bottom: 6px; font-weight: 700; color: var(--accent-purple);">
-            Space Stations in System
+            {{ 'details.stations_in_system' | translate }}
           </label>
           @if (galaxyService.selectedSystemStations().length > 0) {
             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
@@ -923,7 +911,7 @@
 
           @if (galaxyService.selectedSystemStations().length === 0) {
             <div id="no-stations-msg" style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">
-              No space stations cataloged in this system.
+              {{ 'details.no_stations' | translate }}
             </div>
           }
 
@@ -931,13 +919,13 @@
           @if (galaxyService.selectedStation(); as station) {
             <div id="station-details-subpanel">
               <div style="font-size: 0.85rem; margin-bottom: 8px;">
-                Owner: <span
-                style="font-family: var(--font-mono); color: var(--text-secondary);">{{ station.owner || 'Independent' }}</span>
+                {{ 'creator.owner_faction' | translate }}: <span
+                style="font-family: var(--font-mono); color: var(--text-secondary);">{{ station.owner || ('details.independent' | translate) }}</span>
               </div>
 
               <!-- Facilities Section -->
               <div style="margin-top: 12px;">
-                <label style="display: block; margin-bottom: 4px;">Facilities & Services</label>
+                <label style="display: block; margin-bottom: 4px;">{{ 'details.facilities' | translate }}</label>
                 <div class="chips-container">
                   @for (f of station.facilities; track f.type) {
                     <span class="chip">
@@ -947,7 +935,7 @@
                       }
                     </span>
                   } @empty {
-                    <div style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">No facilities recorded.
+                    <div style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">{{ 'details.no_facilities' | translate }}
                     </div>
                   }
                 </div>
@@ -964,7 +952,7 @@
                       <option value="Laboratory">Laboratory</option>
                       <option value="Marketplace">Marketplace</option>
                     </select>
-                    <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">Add</button>
+                    <button type="submit" class="btn btn-sm" style="width: auto; padding: 0 12px;">{{ 'details.add_btn' | translate }}</button>
                   </form>
                 }
               </div>
@@ -972,8 +960,7 @@
               <!-- Delete Station Button (Admin Only) -->
               @if (galaxyService.isAdmin()) {
                 <div style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-                  <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="deleteStation(station.id)">Delete
-                    Space Station
+                  <button class="btn btn-danger btn-sm" style="width: 100%;" (click)="deleteStation(station.id)">{{ 'details.delete_station' | translate }}
                   </button>
                 </div>
               }
@@ -985,8 +972,7 @@
         @if (galaxyService.isAdmin()) {
           <div
             style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px; display: flex; gap: 8px;">
-            <button class="btn btn-danger btn-sm" style="flex:1;" (click)="deleteStarSystem(sys.id)">Delete Star
-              System
+            <button class="btn btn-danger btn-sm" style="flex:1;" (click)="deleteStarSystem(sys.id)">{{ 'details.delete_system' | translate }}
             </button>
           </div>
         }
@@ -1001,16 +987,16 @@
 <div id="login-modal" class="modal-overlay" [class.active]="isLoginModalOpen()">
   <div class="modal">
     <div class="modal-header">
-      <h2>Administrator Login</h2>
-      <p>Authenticate to unlock custom map creation tools.</p>
+      <h2>{{ 'login_modal.title' | translate }}</h2>
+      <p>{{ 'login_modal.subtitle' | translate }}</p>
     </div>
     <form (submit)="login($event)">
       <div class="form-group">
-        <label for="login-username">Admin Email / Username</label>
+        <label for="login-username">{{ 'login_modal.username' | translate }}</label>
         <input type="text" id="login-username" name="loginUser" [(ngModel)]="loginUser" required placeholder="admin">
       </div>
       <div class="form-group">
-        <label for="login-password">Password</label>
+        <label for="login-password">{{ 'login_modal.password' | translate }}</label>
         <input type="password" id="login-password" name="loginPass" [(ngModel)]="loginPass" required
                placeholder="admin">
       </div>
@@ -1021,8 +1007,8 @@
         </div>
       }
       <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <button type="submit" class="btn">Login</button>
-        <button type="button" class="btn btn-sec" (click)="closeLoginModal()">Cancel</button>
+        <button type="submit" class="btn">{{ 'login_modal.login_btn' | translate }}</button>
+        <button type="button" class="btn btn-sec" (click)="closeLoginModal()">{{ 'login_modal.cancel_btn' | translate }}</button>
       </div>
     </form>
   </div>

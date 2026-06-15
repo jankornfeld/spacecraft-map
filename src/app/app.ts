@@ -1,13 +1,14 @@
 import { Component, signal, computed, effect, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GalaxyService } from './services/galaxy.service';
 import { Sector, StarSystem, Planet, SpaceStation, Connection, PlanetBase, BaseProduction } from './models/galaxy.model';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, TranslatePipe],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -94,7 +95,11 @@ export class App implements OnInit {
   dropzoneBg = 'rgba(0, 0, 0, 0.15)';
   private sstWorker: Worker | null = null;
 
-  constructor(public galaxyService: GalaxyService) {
+  constructor(public galaxyService: GalaxyService, public translate: TranslateService) {
+    this.translate.setFallbackLang('de');
+    const savedLang = localStorage.getItem('spacecraft_lang') || 'de';
+    this.translate.use(savedLang);
+
     effect(() => {
       this.dbUrlInput = this.galaxyService.activeUrl();
       this.dbKeyInput = this.galaxyService.activeKey();
@@ -118,6 +123,11 @@ export class App implements OnInit {
     }
   }
 
+  setLang(lang: string) {
+    this.translate.use(lang);
+    localStorage.setItem('spacecraft_lang', lang);
+  }
+
   closeLoginModal() {
     this.isLoginModalOpen.set(false);
     this.loginUser = '';
@@ -131,7 +141,7 @@ export class App implements OnInit {
 
     try {
       if (this.galaxyService.isDbConnected()) {
-        this.galaxyService.showToast('Connecting with Supabase Auth...', 'info');
+        this.galaxyService.showToast(this.translate.instant('toasts.connecting'), 'info');
       }
 
       const loginSuccess = await this.galaxyService.login(this.loginUser, this.loginPass);
@@ -140,14 +150,14 @@ export class App implements OnInit {
         this.isLoginModalOpen.set(false);
         this.loginUser = '';
         this.loginPass = '';
-        this.galaxyService.showToast('Administrator Mode Unlocked', 'success');
+        this.galaxyService.showToast(this.translate.instant('toasts.admin_unlocked'), 'success');
 
         // Switch to Creator/Admin tab automatically
         this.activeTab.set('admin-tab');
       }
     } catch (err: any) {
       console.error(err);
-      this.loginErrorMsg.set(err.message || 'Authentication failed.');
+      this.loginErrorMsg.set(err.message || this.translate.instant('toasts.invalid_login'));
     }
   }
 
@@ -213,10 +223,10 @@ export class App implements OnInit {
 
     if (allVisible) {
       this.galaxyService.hiddenSectorIds.set(new Set(sectors.map(sec => sec.id)));
-      this.galaxyService.showToast('Hidden all sector boundaries');
+      this.galaxyService.showToast(this.translate.instant('toasts.hidden_sectors'));
     } else {
       this.galaxyService.hiddenSectorIds.set(new Set());
-      this.galaxyService.showToast('Showing all sector boundaries');
+      this.galaxyService.showToast(this.translate.instant('toasts.showing_sectors'));
     }
   }
 
@@ -233,19 +243,19 @@ export class App implements OnInit {
 
   setRouteStart(sysId: string) {
     this.galaxyService.routeStartSystemId.set(sysId);
-    this.galaxyService.showToast(`Origin set to: ${sysId}`);
+    this.galaxyService.showToast(this.translate.instant('toasts.origin_set', { id: sysId }));
   }
 
   setRouteEnd(sysId: string) {
     this.galaxyService.routeEndSystemId.set(sysId);
-    this.galaxyService.showToast(`Destination set to: ${sysId}`);
+    this.galaxyService.showToast(this.translate.instant('toasts.dest_set', { id: sysId }));
   }
 
   clearRoute() {
     this.galaxyService.routeStartSystemId.set(null);
     this.galaxyService.routeEndSystemId.set(null);
     this.galaxyService.calculatedRoute.set(null);
-    this.galaxyService.showToast('FTL path highlights cleared.');
+    this.galaxyService.showToast(this.translate.instant('toasts.route_cleared'));
   }
 
   // --- DETAILS PANEL ACTIONS ---
@@ -393,25 +403,25 @@ export class App implements OnInit {
         station.facilities.push({ type: this.newStationFacilityVal });
         await this.galaxyService.dbSaveStation(station);
       } else {
-        this.galaxyService.showToast("Facility already exists on this station!", "warning");
+        this.galaxyService.showToast(this.translate.instant('toasts.facility_exists'), "warning");
       }
     }
   }
 
   async deletePlanet(planetId: string) {
-    if (confirm(`Are you sure you want to delete planet ${planetId}?`)) {
+    if (confirm(this.translate.instant('confirmations.delete_planet', { name: planetId }))) {
       await this.galaxyService.dbDeletePlanet(planetId);
     }
   }
 
   async deleteStation(stationId: string) {
-    if (confirm(`Are you sure you want to delete space station ${stationId}?`)) {
+    if (confirm(this.translate.instant('confirmations.delete_station', { name: stationId }))) {
       await this.galaxyService.dbDeleteStation(stationId);
     }
   }
 
   async deleteStarSystem(sysId: string) {
-    if (confirm(`Delete star system ${sysId} and its planets/connections?`)) {
+    if (confirm(this.translate.instant('confirmations.delete_system', { name: sysId }))) {
       await this.galaxyService.dbDeleteSystem(sysId);
     }
   }
@@ -455,7 +465,7 @@ export class App implements OnInit {
       this.sectorPolygonInput = '';
       this.disableSectorPinMode();
     } catch (err: any) {
-      this.galaxyService.showToast(`Sector creation failed: ${err.message}`, "error");
+      this.galaxyService.showToast(this.translate.instant('toasts.sector_failed', { message: err.message }), "error");
     }
   }
 
@@ -535,7 +545,7 @@ export class App implements OnInit {
     if (!this.galaxyService.isAdmin()) return;
 
     if (this.connFormFromId === this.connFormToId) {
-      this.galaxyService.showToast("Cannot connect a system to itself!", "warning");
+      this.galaxyService.showToast(this.translate.instant('toasts.self_connection'), "warning");
       return;
     }
 
@@ -585,7 +595,7 @@ export class App implements OnInit {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    this.galaxyService.showToast("Galaxy JSON configuration exported successfully", "success");
+    this.galaxyService.showToast(this.translate.instant('toasts.exported'), "success");
   }
 
   importJsonTrigger() {
@@ -649,17 +659,17 @@ export class App implements OnInit {
         }
 
         this.recenterMap();
-        this.galaxyService.showToast("Galaxy layout imported successfully", "success");
+        this.galaxyService.showToast(this.translate.instant('toasts.imported'), "success");
       } catch (err: any) {
         console.error(err);
-        this.galaxyService.showToast(`Import failed: ${err.message}`, "error");
+        this.galaxyService.showToast(this.translate.instant('toasts.import_failed', { message: err.message }), "error");
       }
     };
     reader.readAsText(file);
   }
 
   wipeDb() {
-    if (confirm("🚨 WARNING: Are you sure you want to delete ALL custom sectors, systems, and FTL pathways? This action cannot be undone.")) {
+    if (confirm(this.translate.instant('confirmations.wipe_db'))) {
       this.galaxyService.dbWipe();
     }
   }
@@ -670,7 +680,7 @@ export class App implements OnInit {
     if (this.dbUrlInput && this.dbKeyInput) {
       this.galaxyService.connectToSupabase(this.dbUrlInput, this.dbKeyInput);
     } else {
-      this.galaxyService.showToast("Please provide both Supabase URL and Key", "warning");
+      this.galaxyService.showToast(this.translate.instant('toasts.provide_db_details'), "warning");
     }
   }
 
