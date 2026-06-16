@@ -162,7 +162,7 @@ export class MapComponent {
     e.preventDefault();
 
     this.galaxyService.removeSectorVertex(sec.id, vertexIndex);
-    
+
     // Save updated sector
     const updatedSec = this.galaxyService.sectors().find(s => s.id === sec.id);
     if (updatedSec) {
@@ -358,6 +358,52 @@ export class MapComponent {
   getPolygonPointsStr(points: [number, number][]): string {
     return points.map(p => p.join(",")).join(" ");
   }
+
+  getRoundedPolygonPath(points: [number, number][], radius: number = 20): string {
+    if (!points || points.length < 3) return '';
+
+    let path = '';
+    const n = points.length;
+
+    for (let i = 0; i < n; i++) {
+      const B = points[i];
+      const A = points[(i - 1 + n) % n];
+      const C = points[(i + 1) % n];
+
+      // Vector from B to A
+      const dx1 = A[0] - B[0];
+      const dy1 = A[1] - B[1];
+      const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+
+      // Vector from B to C
+      const dx2 = C[0] - B[0];
+      const dy2 = C[1] - B[1];
+      const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+
+      if (len1 === 0 || len2 === 0) continue;
+
+      const u1 = [dx1 / len1, dy1 / len1];
+      const u2 = [dx2 / len2, dy2 / len2];
+
+      // Restrict corner radius to at most half of the adjacent segment lengths
+      const d = Math.min(radius, len1 / 2, len2 / 2);
+
+      const pStart = [B[0] + d * u1[0], B[1] + d * u1[1]];
+      const pEnd = [B[0] + d * u2[0], B[1] + d * u2[1]];
+
+      if (i === 0) {
+        path += `M ${pStart[0].toFixed(1)} ${pStart[1].toFixed(1)}`;
+      } else {
+        path += ` L ${pStart[0].toFixed(1)} ${pStart[1].toFixed(1)}`;
+      }
+
+      path += ` Q ${B[0].toFixed(1)} ${B[1].toFixed(1)} ${pEnd[0].toFixed(1)} ${pEnd[1].toFixed(1)}`;
+    }
+
+    path += ' Z';
+    return path;
+  }
+
 
   getLaneCoords(conn: Connection) {
     const systems = this.galaxyService.systems();

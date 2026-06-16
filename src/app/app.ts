@@ -48,7 +48,7 @@ export class App implements OnInit {
   tempSectorPoints = signal<[number, number][]>([]);
 
   // Map Controls State (Grid & Boundaries visibility)
-  showGrid = signal<boolean>(true);
+  showGrid = signal<boolean>(false);
   showSectors = signal<boolean>(true);
   showLabels = signal<boolean>(true);
   planetColorMode = signal<string>('star');

@@ -192,4 +192,26 @@ describe('MapComponent', () => {
 
     expect(component.getConnectionLabel(conn)).toBe('Sol ⟷ Alpha Centauri');
   });
+
+  describe('getRoundedPolygonPath', () => {
+    it('should return empty string for null, empty or less than 3 points', () => {
+      expect(component.getRoundedPolygonPath([])).toBe('');
+      expect(component.getRoundedPolygonPath([[0, 0]])).toBe('');
+      expect(component.getRoundedPolygonPath([[0, 0], [10, 10]])).toBe('');
+    });
+
+    it('should generate a valid path string for a triangle', () => {
+      const triangle: [number, number][] = [[0, 0], [100, 0], [50, 100]];
+      const path = component.getRoundedPolygonPath(triangle, 10);
+      
+      expect(path).toContain('M');
+      expect(path).toContain('Q');
+      expect(path).toContain('Z');
+      
+      // The path should look like: "M 5.0 10.0 Q 0.0 0.0 10.0 0.0 L 90.0 0.0 Q 100.0 0.0 95.0 10.0 L 55.0 90.0 Q 50.0 100.0 45.0 90.0 Z"
+      // Let's verify start coordinates and curves
+      expect(path).toMatch(/^M \d+(\.\d+)? \d+(\.\d+)? L?/);
+      expect(path).toMatch(/Z$/);
+    });
+  });
 });

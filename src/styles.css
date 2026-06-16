@@ -208,9 +208,9 @@ main:active {
 }
 
 .sector-polygon {
-  fill-opacity: 0.03;
-  stroke-width: 1.5;
-  stroke-dasharray: 4 6;
+  fill-opacity: 0;
+  /*stroke-width: 1.5;
+  stroke-dasharray: 4 6;*/
   transition: var(--transition-smooth);
 }
 

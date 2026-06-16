@@ -23,11 +23,11 @@
         @if (showSectors()) {
           @for (sec of galaxyService.sectors(); track sec.id) {
             @if (sec.polygon && sec.polygon.length >= 3 && isSectorVisible(sec.id)) {
-              <polygon [attr.points]="getPolygonPointsStr(sec.polygon)"
-                       class="sector-polygon"
-                       [attr.stroke]="sec.color"
-                       [attr.fill]="sec.color"
-                       [attr.id]="'svg-' + sec.id"></polygon>
+              <path [attr.d]="getRoundedPolygonPath(sec.polygon, 20)"
+                    class="sector-polygon"
+                    [attr.stroke]="sec.color"
+                    [attr.fill]="sec.color"
+                    [attr.id]="'svg-' + sec.id"></path>
             }
           }
         }
@@ -38,9 +38,9 @@
         @if (isSectorPinMode() && tempSectorPoints().length > 0) {
           @if (tempSectorPoints().length >= 2) {
             @if (tempSectorPoints().length >= 3) {
-              <polygon [attr.points]="getPolygonPointsStr(tempSectorPoints())" [attr.stroke]="sectorColorInput()"
+              <path [attr.d]="getRoundedPolygonPath(tempSectorPoints(), 20)" [attr.stroke]="sectorColorInput()"
                        stroke-width="2.0" [attr.fill]="sectorColorInput()" fill-opacity="0.15"
-                       stroke-dasharray="4 4"></polygon>
+                       stroke-dasharray="4 4"></path>
             } @else {
               <polyline [attr.points]="getPolygonPointsStr(tempSectorPoints())" [attr.stroke]="sectorColorInput()"
                         stroke-width="2.0" stroke-dasharray="4 4"></polyline>
@@ -105,7 +105,7 @@
       <!-- Stars Layer -->
       <g id="stars-layer">
         @for (sys of galaxyService.systems(); track sys.id) {
-          <g class="system-node" [attr.id]="'node-' + sys.id" 
+          <g class="system-node" [attr.id]="'node-' + sys.id"
              (click)="onNodeClick(sys.id, $event)"
              (mousedown)="onSystemMouseDown($event, sys)"
              [style.cursor]="isEditMode() && galaxyService.isAdmin() ? 'move' : 'pointer'">
