@@ -193,6 +193,77 @@ describe('MapComponent', () => {
     expect(component.getConnectionLabel(conn)).toBe('Sol ⟷ Alpha Centauri');
   });
 
+  it('should correctly identify if a connection is between different sectors or outside sectors', () => {
+    service.sectors.set([
+      { id: 'sec-1', name: 'Sector 1', index: 1, color: '#ff0000', polygon: [] },
+      { id: 'sec-2', name: 'Sector 2', index: 2, color: '#00ff00', polygon: [] }
+    ]);
+
+    const systemA: StarSystem = {
+      id: 'sys-a',
+      name: 'Sol',
+      starType: 'G',
+      starColor: '#ffffff',
+      index: 1,
+      sectorId: 'sec-1',
+      color: '#ffffff',
+      x: 100,
+      y: 100
+    };
+
+    const systemB: StarSystem = {
+      id: 'sys-b',
+      name: 'Alpha Centauri',
+      starType: 'K',
+      starColor: '#ff0000',
+      index: 2,
+      sectorId: 'sec-1',
+      color: '#ff0000',
+      x: 200,
+      y: 200
+    };
+
+    const systemC: StarSystem = {
+      id: 'sys-c',
+      name: 'Vega',
+      starType: 'A',
+      starColor: '#0000ff',
+      index: 3,
+      sectorId: 'sec-2',
+      color: '#0000ff',
+      x: 300,
+      y: 300
+    };
+
+    const systemOutside: StarSystem = {
+      id: 'sys-out',
+      name: 'Void',
+      starType: 'M',
+      starColor: '#888888',
+      index: 4,
+      sectorId: 'sec-non-existent',
+      color: '#888888',
+      x: 400,
+      y: 400
+    };
+
+    service.systems.set([systemA, systemB, systemC, systemOutside]);
+
+    const connSameSector: Connection = { from_system_id: 'sys-a', to_system_id: 'sys-b', cost: 5 };
+    const connBetweenSectors: Connection = { from_system_id: 'sys-a', to_system_id: 'sys-c', cost: 10 };
+    const connOutsideSectors: Connection = { from_system_id: 'sys-a', to_system_id: 'sys-out', cost: 15 };
+
+    // Test isBetweenSectors
+    expect(component.isBetweenSectors(connSameSector)).toBe(false);
+    expect(component.isBetweenSectors(connBetweenSectors)).toBe(true);
+    expect(component.isBetweenSectors(connOutsideSectors)).toBe(false);
+
+    // Test isOutsideSectors
+    expect(component.isOutsideSectors(connSameSector)).toBe(false);
+    expect(component.isOutsideSectors(connBetweenSectors)).toBe(false);
+    expect(component.isOutsideSectors(connOutsideSectors)).toBe(true);
+  });
+
   describe('getRoundedPolygonPath', () => {
     it('should return empty string for null, empty or less than 3 points', () => {
       expect(component.getRoundedPolygonPath([])).toBe('');

@@ -225,6 +225,18 @@ main:active {
   transition: var(--transition-smooth);
 }
 
+.connection-lane.between-sectors {
+  stroke: rgba(139, 92, 246, 0.4); /* subtle purple tint */
+  stroke-dasharray: 6 4;            /* dashed line */
+  stroke-width: 1.2;
+}
+
+.connection-lane.outside-sectors {
+  stroke: rgba(255, 255, 255, 0.05); /* dimmer white */
+  stroke-dasharray: 2 4;             /* dotted line */
+  stroke-width: 1;
+}
+
 .connection-lane-hover-target {
   stroke: transparent;
   stroke-width: 12;
@@ -236,13 +248,14 @@ main:active {
   stroke: var(--accent-blue);
   stroke-width: 2.5;
   filter: drop-shadow(0 0 6px var(--accent-blue-glow));
+  stroke-dasharray: none; /* override dash on hover */
 }
 
 .connection-lane.active-path {
   stroke: var(--accent-emerald);
   stroke-width: 2.5;
   filter: drop-shadow(0 0 8px var(--accent-emerald-glow));
-  stroke-dasharray: 8 4;
+  stroke-dasharray: 8 4 !important; /* ensure marching ants animation works even when dashed */
   animation: pathDash 20s linear infinite;
 }
 

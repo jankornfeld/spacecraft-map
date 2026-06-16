@@ -91,6 +91,8 @@
               <line [attr.x1]="coords.x1" [attr.y1]="coords.y1" [attr.x2]="coords.x2" [attr.y2]="coords.y2"
                     class="connection-lane"
                     [class.active-path]="isLaneActivePath(conn.from_system_id, conn.to_system_id)"
+                    [class.between-sectors]="isBetweenSectors(conn)"
+                    [class.outside-sectors]="isOutsideSectors(conn)"
                     [attr.id]="'lane-' + conn.from_system_id + '-' + conn.to_system_id"></line>
               <line [attr.x1]="coords.x1" [attr.y1]="coords.y1" [attr.x2]="coords.x2" [attr.y2]="coords.y2"
                     class="connection-lane-hover-target"

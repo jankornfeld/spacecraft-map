@@ -431,6 +431,30 @@ export class MapComponent {
     );
   }
 
+  isBetweenSectors(conn: Connection): boolean {
+    const systems = this.galaxyService.systems();
+    const fromSys = systems.find(s => s.id === conn.from_system_id);
+    const toSys = systems.find(s => s.id === conn.to_system_id);
+    if (!fromSys || !toSys) return false;
+
+    const sectors = this.galaxyService.sectors();
+    const fromInSector = sectors.some(s => s.id === fromSys.sectorId);
+    const toInSector = sectors.some(s => s.id === toSys.sectorId);
+    return fromInSector && toInSector && fromSys.sectorId !== toSys.sectorId;
+  }
+
+  isOutsideSectors(conn: Connection): boolean {
+    const systems = this.galaxyService.systems();
+    const fromSys = systems.find(s => s.id === conn.from_system_id);
+    const toSys = systems.find(s => s.id === conn.to_system_id);
+    if (!fromSys || !toSys) return true;
+
+    const sectors = this.galaxyService.sectors();
+    const fromInSector = sectors.some(s => s.id === fromSys.sectorId);
+    const toInSector = sectors.some(s => s.id === toSys.sectorId);
+    return !fromInSector || !toInSector;
+  }
+
   isSectorVisible(sectorId: string): boolean {
     return !this.galaxyService.hiddenSectorIds().has(sectorId);
   }
