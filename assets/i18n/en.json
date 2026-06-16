@@ -167,7 +167,10 @@
     "no_facilities": "No facilities recorded.",
     "select_facility": "Select Facility...",
     "delete_station": "Delete Space Station",
-    "delete_system": "Delete Star System"
+    "delete_system": "Delete Star System",
+    "image_url": "Base Image URL",
+    "image_url_placeholder": "Image URL (e.g. https://...)",
+    "open_link_btn": "Open Image Link"
   },
   "login_modal": {
     "title": "Administrator Login",
