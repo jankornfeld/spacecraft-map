@@ -24,6 +24,13 @@ export class GalaxyService {
   // Supabase Client
   private supabaseClient: SupabaseClient | null = null;
 
+  // Local active editing lock to prevent incoming realtime events from overriding active user interaction
+  activelyDraggedSystemId = signal<string | null>(null);
+  activelyDraggedSectorId = signal<string | null>(null);
+
+  // Supabase Realtime subscription channel
+  private realtimeChannel: any = null;
+
   // Default Fallback Database Credentials
   readonly DEFAULT_SUPABASE_URL = 'https://gkdobhkefyhhgwokncib.supabase.co';
   readonly DEFAULT_SUPABASE_KEY = 'sb_publishable_gVzF3Pt1I0CLSnrqB99Ebg_INqarOC-';
@@ -155,6 +162,7 @@ export class GalaxyService {
     this.connectionStatusText.set('connection_status.offline');
     this.connectionStatusClass.set('badge badge-blue');
     this.showToast(this.translate.instant('toasts.db_disconnected'));
+    this.unsubscribeFromRealtime();
     this.loadData();
   }
 
@@ -249,11 +257,15 @@ export class GalaxyService {
         const { data: connData, error: cErr } = await this.supabaseClient.from('connections').select('*');
         if (cErr) throw cErr;
         const loadedConnections = (connData || []).map((c: any) => ({
+          id: c.id,
           from_system_id: c.from_system_id,
           to_system_id: c.to_system_id,
           cost: c.cost
         }));
         this.connections.set(loadedConnections);
+
+        // 6. Subscribe to Realtime Updates
+        this.subscribeToRealtime();
 
       } catch (e) {
         console.error('Error fetching from Supabase', e);
@@ -677,6 +689,226 @@ export class GalaxyService {
       }
     } else {
       this.showToast(this.translate.instant('toasts.db_wiped_local'), 'success');
+    }
+  }
+
+  // --- SUPABASE REALTIME SYNCHRONIZATION ---
+  private subscribeToRealtime() {
+    if (!this.isDbConnected() || !this.supabaseClient) return;
+
+    // Ensure we unsubscribe from any existing channels first
+    this.unsubscribeFromRealtime();
+
+    console.log('Establishing Supabase Realtime subscription...');
+
+    this.realtimeChannel = this.supabaseClient
+      .channel('public:galaxy')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sectors' },
+        (payload: any) => this.handleSectorRealtime(payload)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'systems' },
+        (payload: any) => this.handleSystemRealtime(payload)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'planets' },
+        (payload: any) => this.handlePlanetRealtime(payload)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'stations' },
+        (payload: any) => this.handleStationRealtime(payload)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'connections' },
+        (payload: any) => this.handleConnectionRealtime(payload)
+      )
+      .subscribe((status: string) => {
+        console.log(`Supabase Realtime subscription status: ${status}`);
+      });
+  }
+
+  private unsubscribeFromRealtime() {
+    if (this.supabaseClient && this.realtimeChannel) {
+      this.supabaseClient.removeChannel(this.realtimeChannel);
+      this.realtimeChannel = null;
+    }
+  }
+
+  private handleSectorRealtime(payload: any) {
+    const eventType = payload.eventType;
+    if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      const s = payload.new;
+      if (this.activelyDraggedSectorId() === s.id) {
+        return; // Ignore coordinate changes for sector actively being edited/dragged
+      }
+
+      const sector: Sector = {
+        id: s.id,
+        name: s.name,
+        index: s.index,
+        level: s.level,
+        color: s.color,
+        polygon: typeof s.polygon === 'string' ? JSON.parse(s.polygon) : s.polygon,
+        centroid: typeof s.centroid === 'string' ? JSON.parse(s.centroid) : s.centroid
+      };
+
+      this.sectors.update(current => {
+        const idx = current.findIndex(item => item.id === sector.id);
+        if (idx !== -1) {
+          const copy = [...current];
+          copy[idx] = sector;
+          return copy;
+        }
+        return [...current, sector];
+      });
+    } else if (eventType === 'DELETE') {
+      const deletedId = payload.old.id;
+      this.sectors.update(current => current.filter(item => item.id !== deletedId));
+    }
+  }
+
+  private handleSystemRealtime(payload: any) {
+    const eventType = payload.eventType;
+    if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      const sys = payload.new;
+      if (this.activelyDraggedSystemId() === sys.id) {
+        return; // Ignore coordinate/detail updates for system actively being dragged
+      }
+
+      const system: StarSystem = {
+        id: sys.id,
+        name: sys.name,
+        gameId: sys.game_id,
+        designation: sys.designation,
+        starType: sys.star_type,
+        starColor: sys.star_color,
+        index: sys.index,
+        sectorId: sys.sector_id,
+        color: sys.color,
+        x: sys.x,
+        y: sys.y
+      };
+
+      this.systems.update(current => {
+        const idx = current.findIndex(item => item.id === system.id);
+        if (idx !== -1) {
+          const copy = [...current];
+          copy[idx] = system;
+          return copy;
+        }
+        return [...current, system];
+      });
+    } else if (eventType === 'DELETE') {
+      const deletedId = payload.old.id;
+      this.systems.update(current => current.filter(item => item.id !== deletedId));
+      if (this.selectedSystemId() === deletedId) {
+        this.selectedSystemId.set(null);
+        this.selectedPlanetId.set(null);
+        this.selectedStationId.set(null);
+      }
+    }
+  }
+
+  private handlePlanetRealtime(payload: any) {
+    const eventType = payload.eventType;
+    if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      const p = payload.new;
+      const planet = this.migratePlanets([p])[0];
+
+      this.planets.update(current => {
+        const idx = current.findIndex(item => item.id === planet.id);
+        if (idx !== -1) {
+          const copy = [...current];
+          copy[idx] = planet;
+          return copy;
+        }
+        return [...current, planet];
+      });
+    } else if (eventType === 'DELETE') {
+      const deletedId = payload.old.id;
+      this.planets.update(current => current.filter(item => item.id !== deletedId));
+      if (this.selectedPlanetId() === deletedId) {
+        this.selectedPlanetId.set(null);
+      }
+    }
+  }
+
+  private handleStationRealtime(payload: any) {
+    const eventType = payload.eventType;
+    if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      const st = payload.new;
+      const station: SpaceStation = {
+        id: st.id,
+        name: st.name,
+        systemId: st.system_id,
+        owner: st.owner || 'Independent',
+        facilities: typeof st.facilities === 'string' ? JSON.parse(st.facilities) : (st.facilities || [])
+      };
+
+      this.stations.update(current => {
+        const idx = current.findIndex(item => item.id === station.id);
+        if (idx !== -1) {
+          const copy = [...current];
+          copy[idx] = station;
+          return copy;
+        }
+        return [...current, station];
+      });
+    } else if (eventType === 'DELETE') {
+      const deletedId = payload.old.id;
+      this.stations.update(current => current.filter(item => item.id !== deletedId));
+      if (this.selectedStationId() === deletedId) {
+        this.selectedStationId.set(null);
+      }
+    }
+  }
+
+  private handleConnectionRealtime(payload: any) {
+    const eventType = payload.eventType;
+    if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      const c = payload.new;
+      const connection: Connection = {
+        id: c.id,
+        from_system_id: c.from_system_id,
+        to_system_id: c.to_system_id,
+        cost: c.cost
+      };
+
+      this.connections.update(current => {
+        const idx = current.findIndex(item =>
+          (item.id !== undefined && item.id === connection.id) ||
+          (item.from_system_id === connection.from_system_id && item.to_system_id === connection.to_system_id) ||
+          (item.from_system_id === connection.to_system_id && item.to_system_id === connection.from_system_id)
+        );
+
+        if (idx !== -1) {
+          const copy = [...current];
+          copy[idx] = connection;
+          return copy;
+        }
+        return [...current, connection];
+      });
+    } else if (eventType === 'DELETE') {
+      const deletedId = payload.old.id;
+      if (deletedId !== undefined) {
+        this.connections.update(current => current.filter(item => item.id !== deletedId));
+      } else {
+        // Fallback for REPLICA IDENTITY FULL deletes
+        const fromSys = payload.old.from_system_id;
+        const toSys = payload.old.to_system_id;
+        if (fromSys && toSys) {
+          this.connections.update(current => current.filter(item =>
+            !(item.from_system_id === fromSys && item.to_system_id === toSys) &&
+            !(item.from_system_id === toSys && item.to_system_id === fromSys)
+          ));
+        }
+      }
     }
   }
 

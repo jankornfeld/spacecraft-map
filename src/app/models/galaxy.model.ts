@@ -52,6 +52,7 @@ export interface SpaceStation {
 }
 
 export interface Connection {
+  id?: number;
   from_system_id: string;
   to_system_id: string;
   cost: number;

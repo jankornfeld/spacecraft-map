@@ -115,6 +115,7 @@ export class MapComponent {
     e.preventDefault();
 
     this.activeDraggedSystemId = sys.id;
+    this.galaxyService.activelyDraggedSystemId.set(sys.id);
 
     const svg = document.getElementById("map-viewport");
     if (!svg) return;
@@ -135,6 +136,7 @@ export class MapComponent {
     e.preventDefault();
 
     this.activeDraggedSectorId = sec.id;
+    this.galaxyService.activelyDraggedSectorId.set(sec.id);
     this.activeDraggedSectorVertexIndex = vertexIndex;
   }
 
@@ -149,6 +151,7 @@ export class MapComponent {
 
     // Set dragging state for the newly created vertex
     this.activeDraggedSectorId = sec.id;
+    this.galaxyService.activelyDraggedSectorId.set(sec.id);
     this.activeDraggedSectorVertexIndex = insertIndex;
   }
 
@@ -225,6 +228,7 @@ export class MapComponent {
     } else if (this.activeDraggedSystemId) {
       const sysId = this.activeDraggedSystemId;
       this.activeDraggedSystemId = null;
+      this.galaxyService.activelyDraggedSystemId.set(null);
       const sys = this.galaxyService.systems().find(s => s.id === sysId);
       if (sys) {
         await this.galaxyService.dbSaveSystem(sys);
@@ -232,6 +236,7 @@ export class MapComponent {
     } else if (this.activeDraggedSectorId) {
       const sectorId = this.activeDraggedSectorId;
       this.activeDraggedSectorId = null;
+      this.galaxyService.activelyDraggedSectorId.set(null);
       this.activeDraggedSectorVertexIndex = -1;
       const sec = this.galaxyService.sectors().find(s => s.id === sectorId);
       if (sec) {

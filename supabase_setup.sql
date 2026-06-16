@@ -158,3 +158,14 @@ CREATE INDEX IF NOT EXISTS idx_stations_system_id ON stations(system_id);
 ALTER TABLE planets ADD COLUMN IF NOT EXISTS bases JSONB DEFAULT '[]'::jsonb;
 
 
+-- 14. ENABLE REALTIME SYNC (Run these in Supabase to enable realtime broadcasts)
+-- alter publication supabase_realtime add table sectors;
+-- alter publication supabase_realtime add table systems;
+-- alter publication supabase_realtime add table planets;
+-- alter publication supabase_realtime add table stations;
+-- alter publication supabase_realtime add table connections;
+
+-- Ensure connection deletions broadcast the full record for client filtering
+-- alter table connections replica identity full;
+
+

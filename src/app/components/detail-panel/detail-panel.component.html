@@ -190,13 +190,15 @@
                         <div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 8px;">
                           <div
                             style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center;">
-                            <input #prodItem type="text" [placeholder]="'details.produces_placeholder' | translate"
+                            <input type="text" [placeholder]="'details.produces_placeholder' | translate"
+                                   [(ngModel)]="baseProdItemInputs[getBaseProdKey(planet.id, baseIndex)]"
                                    style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;">
-                            <input #prodAmount type="number" [placeholder]="'details.qty_placeholder' | translate"
+                            <input type="number" [placeholder]="'details.qty_placeholder' | translate"
+                                   [(ngModel)]="baseProdAmountInputs[getBaseProdKey(planet.id, baseIndex)]"
                                    style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px;" min="1">
                             <button type="button" class="btn btn-sm btn-sec"
                                     style="padding: 4px 8px; width: auto; font-size: 0.75rem;"
-                                    (click)="addBaseProduction(planet.id, baseIndex, prodItem.value, prodAmount.valueAsNumber); prodItem.value=''; prodAmount.value=''">
+                                    (click)="addBaseProduction(planet.id, baseIndex, baseProdItemInputs[getBaseProdKey(planet.id, baseIndex)], baseProdAmountInputs[getBaseProdKey(planet.id, baseIndex)])">
                               +
                             </button>
                           </div>

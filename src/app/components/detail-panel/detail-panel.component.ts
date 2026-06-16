@@ -22,6 +22,14 @@ export class DetailPanelComponent {
   newBaseName = '';
   newBaseOwner = '';
 
+  // Transient state for inline base production inputs to prevent loss during realtime updates
+  baseProdItemInputs: Record<string, string> = {};
+  baseProdAmountInputs: Record<string, number> = {};
+
+  getBaseProdKey(planetId: string, baseIndex: number): string {
+    return `${planetId}-${baseIndex}`;
+  }
+
   // Outputs
   closePanel = output<void>();
   setRouteStart = output<string>();
@@ -63,7 +71,11 @@ export class DetailPanelComponent {
   }
 
   async addBaseProduction(planetId: string, baseIndex: number, item: string, amount: number) {
+    if (!item?.trim() || !amount) return;
     await this.galaxyService.addBaseProduction(planetId, baseIndex, item, amount);
+    const key = this.getBaseProdKey(planetId, baseIndex);
+    this.baseProdItemInputs[key] = '';
+    this.baseProdAmountInputs[key] = null as any;
   }
 
   async removeBaseProduction(planetId: string, baseIndex: number, prodIndex: number) {
