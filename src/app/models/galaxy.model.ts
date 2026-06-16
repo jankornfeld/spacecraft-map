@@ -31,6 +31,7 @@ export interface PlanetBase {
   name: string;
   owner: string;
   productions: BaseProduction[];
+  imageUrl?: string;
 }
 
 export interface Planet {

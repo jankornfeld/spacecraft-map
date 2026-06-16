@@ -807,3 +807,52 @@ app-search-tab, app-sectors-tab, app-route-tab, app-admin-tab, app-settings-tab 
   width: 100%;
 }
 
+/* Image Lightbox Modal */
+.image-lightbox {
+  background: rgba(3, 7, 18, 0.92) !important;
+  backdrop-filter: blur(12px) !important;
+}
+.image-lightbox-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 90vw;
+  max-height: 90vh;
+  outline: none;
+}
+.image-lightbox-img {
+  max-width: 100%;
+  max-height: 75vh;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-premium);
+  object-fit: contain;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: scale(0.92);
+}
+.image-lightbox.active .image-lightbox-img {
+  transform: scale(1);
+}
+.image-lightbox-close {
+  position: absolute;
+  top: -42px;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.image-lightbox-close:hover {
+  color: var(--accent-red);
+  transform: rotate(90deg);
+}
+.image-lightbox-btn {
+  margin-top: 15px;
+  width: auto !important;
+  padding: 8px 16px !important;
+}
+

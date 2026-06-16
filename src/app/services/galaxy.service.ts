@@ -1025,7 +1025,7 @@ export class GalaxyService {
     }
   }
 
-  async addPlanetBase(planetId: string, name: string, owner: string) {
+  async addPlanetBase(planetId: string, name: string, owner: string, imageUrl?: string) {
     const planet = this.planets().find(p => p.id === planetId);
     if (planet && name.trim() && owner.trim()) {
       if (!planet.bases) {
@@ -1034,9 +1034,18 @@ export class GalaxyService {
       const newBase: PlanetBase = {
         name: name.trim(),
         owner: owner.trim(),
-        productions: []
+        productions: [],
+        imageUrl: imageUrl?.trim() || undefined
       };
       planet.bases.push(newBase);
+      await this.dbSavePlanet(planet);
+    }
+  }
+
+  async updateBaseImageUrl(planetId: string, baseIndex: number, imageUrl: string) {
+    const planet = this.planets().find(p => p.id === planetId);
+    if (planet && planet.bases && planet.bases[baseIndex]) {
+      planet.bases[baseIndex].imageUrl = imageUrl?.trim() || undefined;
       await this.dbSavePlanet(planet);
     }
   }

@@ -157,6 +157,32 @@
                         style="font-weight: 500; color: var(--text-primary);">{{ base.owner }}</span>
                       </div>
 
+                      <!-- Base Image / Image URL Input -->
+                      @if (galaxyService.isAdmin()) {
+                        <div style="margin-top: 8px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px;">
+                          <label style="font-size: 0.75rem; color: var(--text-secondary);">{{ 'details.image_url' | translate }}</label>
+                          <input type="text" [placeholder]="'details.image_url_placeholder' | translate"
+                                 [value]="base.imageUrl || ''"
+                                 (change)="updateBaseImageUrl(planet.id, baseIndex, $any($event.target).value)"
+                                 style="padding: 4px 6px; font-size: 0.75rem; border-radius: 4px; width: 100%; box-sizing: border-box;">
+                        </div>
+                      } @else if (base.imageUrl) {
+                        <div #imageBlock style="margin: 8px 0; display: flex; flex-direction: column; gap: 6px;">
+                          <div style="position: relative; overflow: hidden; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer; aspect-ratio: 16/9; background: rgba(0,0,0,0.4);"
+                               (click)="openLightbox(base.imageUrl)">
+                            <img [src]="base.imageUrl" alt="Base Image"
+                                 (error)="imageBlock.style.display='none'"
+                                 style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;"
+                                 onmouseover="this.style.transform='scale(1.05)'"
+                                 onmouseout="this.style.transform='scale(1)'">
+                          </div>
+                          <a [href]="base.imageUrl" target="_blank" class="btn btn-sec btn-sm"
+                             style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 5px 8px; font-size: 0.75rem; text-decoration: none; width: 100%;">
+                            <span>↗</span> {{ 'details.open_link_btn' | translate }}
+                          </a>
+                        </div>
+                      }
+
                       <!-- Base Productions list -->
                       <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
                         @for (prod of base.productions; track $index; let prodIndex = $index) {
@@ -230,6 +256,12 @@
                   <div class="form-group" style="margin-bottom: 8px;">
                     <input type="text" name="baseOwner" [(ngModel)]="newBaseOwner"
                            [placeholder]="'details.owner_placeholder' | translate" required
+                           style="padding: 6px 8px; font-size: 0.8rem;">
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 8px;">
+                    <input type="text" name="baseImageUrl" [(ngModel)]="newBaseImageUrl"
+                           [placeholder]="'details.image_url_placeholder' | translate"
                            style="padding: 6px 8px; font-size: 0.8rem;">
                   </div>
 
@@ -339,6 +371,19 @@
           </button>
         </div>
       }
+    </div>
+  }
+</div>
+
+<!-- Image Lightbox Modal -->
+<div class="modal-overlay image-lightbox" [class.active]="enlargedImageUrl() !== null" (click)="closeLightbox()">
+  @if (enlargedImageUrl(); as url) {
+    <div class="image-lightbox-content" (click)="$event.stopPropagation()">
+      <button class="image-lightbox-close" (click)="closeLightbox()">✕</button>
+      <img [src]="url" alt="Enlarged Base Image" class="image-lightbox-img">
+      <a [href]="url" target="_blank" class="btn btn-sec image-lightbox-btn">
+        <span>↗</span> {{ 'details.open_link_btn' | translate }}
+      </a>
     </div>
   }
 </div>

@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -21,6 +21,10 @@ export class DetailPanelComponent {
   newStationFacilityVal = 'Dock';
   newBaseName = '';
   newBaseOwner = '';
+  newBaseImageUrl = '';
+
+  // Lightbox modal state for enlarged image
+  enlargedImageUrl = signal<string | null>(null);
 
   // Transient state for inline base production inputs to prevent loss during realtime updates
   baseProdItemInputs: Record<string, string> = {};
@@ -60,10 +64,23 @@ export class DetailPanelComponent {
   async addPlanetBase(planetId: string, e: Event) {
     e.preventDefault();
     if (this.newBaseName.trim() && this.newBaseOwner.trim()) {
-      await this.galaxyService.addPlanetBase(planetId, this.newBaseName, this.newBaseOwner);
+      await this.galaxyService.addPlanetBase(planetId, this.newBaseName, this.newBaseOwner, this.newBaseImageUrl);
       this.newBaseName = '';
       this.newBaseOwner = '';
+      this.newBaseImageUrl = '';
     }
+  }
+
+  async updateBaseImageUrl(planetId: string, baseIndex: number, imageUrl: string) {
+    await this.galaxyService.updateBaseImageUrl(planetId, baseIndex, imageUrl);
+  }
+
+  openLightbox(url: string) {
+    this.enlargedImageUrl.set(url);
+  }
+
+  closeLightbox() {
+    this.enlargedImageUrl.set(null);
   }
 
   async removePlanetBase(planetId: string, baseIndex: number) {

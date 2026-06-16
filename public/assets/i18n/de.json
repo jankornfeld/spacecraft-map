@@ -167,7 +167,10 @@
     "no_facilities": "Keine Einrichtungen erfasst.",
     "select_facility": "Einrichtung auswählen...",
     "delete_station": "Raumstation löschen",
-    "delete_system": "Sternensystem löschen"
+    "delete_system": "Sternensystem löschen",
+    "image_url": "Basis-Bild-URL",
+    "image_url_placeholder": "Bild-URL (z. B. https://...)",
+    "open_link_btn": "Bild-Link öffnen"
   },
   "login_modal": {
     "title": "Administrator-Anmeldung",
