@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GalaxyService } from '../../services/galaxy.service';
 import { getStarColorClass, getStarBadgeBg, getStarBadgeColor, getStarBadgeBorder } from '../../utils/star.utils';
+import { Planet, StarSystem } from '../../models/galaxy.model';
 
 @Component({
   selector: 'app-search-tab',
@@ -26,6 +27,42 @@ export class SearchTabComponent {
 
   selectSystem(sysId: string) {
     this.galaxyService.selectSystem(sysId);
+  }
+
+  getMatchingPlanets(sys: StarSystem): Planet[] {
+    const query = this.galaxyService.searchQuery().toLowerCase().trim();
+    const resFilter = this.galaxyService.resourceFilter();
+    const allPlanets = this.galaxyService.planets();
+
+    const sysPlanets = allPlanets.filter(p => p.systemId === sys.id);
+    const resourceFiltered = resFilter
+      ? sysPlanets.filter(p => p.resources && p.resources.includes(resFilter))
+      : sysPlanets;
+
+    if (!query) {
+      return resFilter ? resourceFiltered : [];
+    }
+
+    const systemMatches = sys.name.toLowerCase().includes(query) ||
+      (sys.designation && sys.designation.toLowerCase().includes(query));
+
+    if (systemMatches) {
+      return resourceFiltered;
+    }
+
+    return resourceFiltered.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      (p.designation && p.designation.toLowerCase().includes(query))
+    );
+  }
+
+  selectPlanet(planetId: string, event: Event) {
+    event.stopPropagation();
+    const planet = this.galaxyService.planets().find(p => p.id === planetId);
+    if (planet) {
+      this.galaxyService.selectedSystemId.set(planet.systemId);
+      this.galaxyService.selectedPlanetId.set(planetId);
+    }
   }
 
   // Visual helper delegates

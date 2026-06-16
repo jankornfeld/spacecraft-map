@@ -35,6 +35,20 @@
         {{ 'tabs.sectors' | translate }}: {{ galaxyService.getSectorName(sys.sectorId) }} •
         {{ 'creator.designation' | translate }}: {{ sys.designation || ('details.no_designation' | translate) }}
       </div>
+      @if (getMatchingPlanets(sys).length > 0) {
+        <div class="result-planets">
+          @for (planet of getMatchingPlanets(sys); track planet.id) {
+            <div class="planet-result-item" [class.active]="galaxyService.selectedPlanetId() === planet.id"
+                 (click)="selectPlanet(planet.id, $event)">
+              <span class="planet-icon">🪐</span>
+              <span class="planet-name">{{ planet.name }}</span>
+              @if (planet.designation) {
+                <span class="planet-designation">({{ planet.designation }})</span>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
   } @empty {
     <div

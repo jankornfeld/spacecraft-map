@@ -922,10 +922,17 @@ export class GalaxyService {
     const allPlanets = this.planets();
 
     return allSystems.filter(sys => {
-      const nameMatch = sys.name.toLowerCase().includes(query) ||
+      const sysPlanets = allPlanets.filter(p => p.systemId === sys.id);
+
+      const systemMatchesText = sys.name.toLowerCase().includes(query) ||
         (sys.designation && sys.designation.toLowerCase().includes(query));
 
-      const sysPlanets = allPlanets.filter(p => p.systemId === sys.id);
+      const planetMatchesText = sysPlanets.some(p =>
+        p.name.toLowerCase().includes(query) ||
+        (p.designation && p.designation.toLowerCase().includes(query))
+      );
+
+      const nameMatch = !query || systemMatchesText || planetMatchesText;
       const resourceMatch = !resFilter || sysPlanets.some(p => p.resources && p.resources.includes(resFilter));
 
       return nameMatch && resourceMatch;

@@ -545,6 +545,61 @@ input:focus, select:focus, textarea:focus {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.result-item.active {
+  border-color: var(--accent-blue);
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+}
+
+.result-planets {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 10px;
+  border-left: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.planet-result-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid transparent;
+  transition: var(--transition-smooth);
+}
+
+.planet-result-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.planet-result-item.active {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.15);
+}
+
+.planet-icon {
+  font-size: 0.95rem;
+}
+
+.planet-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.planet-designation {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+
 .sector-item {
   display: flex;
   justify-content: space-between;
