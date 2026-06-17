@@ -28,7 +28,7 @@
     "sectors": "Sektoren",
     "route": "Route",
     "creator": "Ersteller",
-    "settings": "DB & Einstellungen"
+    "settings": "Einstellungen"
   },
   "search": {
     "title": "Systeme suchen",
@@ -130,6 +130,10 @@
     "color_by_sector": "Nach Sektorgrenzfarbe",
     "color_by_star": "Nach Sterntemperatur / -typ",
     "star_size": "Sternmarker-Größe: {{size}}px",
+    "system_label_mode": "System-Beschriftungsformat",
+    "system_label_mode_name": "Nur Name",
+    "system_label_mode_next": "Name & Bezeichnung (neben)",
+    "system_label_mode_below": "Name & Bezeichnung (darunter)",
     "scanner_title": "SST-Spielstandscanner",
     "scanner_desc": "Importieren Sie Sterne, Seeds und Sektor-Voreinstellungen direkt durch Hochladen Ihrer SpaceCraft-Speicherdateien.",
     "drag_drop": "Gezogene .sst-Dateien hier ablegen",

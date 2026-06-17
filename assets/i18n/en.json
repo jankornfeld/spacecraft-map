@@ -28,7 +28,7 @@
     "sectors": "Sectors",
     "route": "Route",
     "creator": "Creator",
-    "settings": "DB & Settings"
+    "settings": "Settings"
   },
   "search": {
     "title": "Search Systems",
@@ -130,6 +130,10 @@
     "color_by_sector": "By Sector Boundary Color",
     "color_by_star": "By Star Temperature / Type",
     "star_size": "Star Marker Size: {size}px",
+    "system_label_mode": "System Label Format",
+    "system_label_mode_name": "Name Only",
+    "system_label_mode_next": "Name & Designation (Next to)",
+    "system_label_mode_below": "Name & Designation (Below)",
     "scanner_title": "SST Game Save Scanner",
     "scanner_desc": "Import stars, seeds, and sector presets directly by uploading your SpaceCraft save files.",
     "drag_drop": "Drag & Drop .sst files here",
