@@ -21,6 +21,7 @@ export class MapComponent {
   showLabels = input<boolean>(true);
   planetColorMode = input<string>('sector');
   starSize = input<number>(10);
+  systemLabelMode = input<string>('name');
 
   // Coordinate capture modes
   isPlaceMode = input<boolean>(false);
@@ -473,10 +474,14 @@ export class MapComponent {
 
   getSystemLabelY(sys: StarSystem): number {
     const baseOffset = (this.starSize() / 2) + 6;
+    let offset = baseOffset;
     if (this.hasBase(sys.id) || this.hasStation(sys.id)) {
-      return sys.y - baseOffset - 12;
+      offset += 12;
     }
-    return sys.y - baseOffset;
+    if (this.systemLabelMode() === 'below' && sys.designation) {
+      offset += 10;
+    }
+    return sys.y - offset;
   }
 
   getConnectionLabel(conn: Connection): string {

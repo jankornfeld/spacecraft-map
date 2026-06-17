@@ -48,11 +48,12 @@ export class App implements OnInit {
   tempSectorPoints = signal<[number, number][]>([]);
 
   // Map Controls State (Grid & Boundaries visibility)
-  showGrid = signal<boolean>(false);
-  showSectors = signal<boolean>(true);
-  showLabels = signal<boolean>(true);
-  planetColorMode = signal<string>('star');
-  starSize = signal<number>(10);
+  showGrid = signal<boolean>(localStorage.getItem('settings_show_grid') === 'true');
+  showSectors = signal<boolean>(localStorage.getItem('settings_show_sectors') !== 'false');
+  showLabels = signal<boolean>(localStorage.getItem('settings_show_labels') !== 'false');
+  planetColorMode = signal<string>(localStorage.getItem('settings_planet_color_mode') || 'star');
+  starSize = signal<number>(Number(localStorage.getItem('settings_star_size')) || 10);
+  systemLabelMode = signal<string>(localStorage.getItem('settings_system_label_mode') || 'name');
 
   // References to subcomponents
   @ViewChild(MapComponent) mapComponent!: MapComponent;
@@ -69,6 +70,26 @@ export class App implements OnInit {
       if (this.adminTab) {
         this.adminTab.setSectorPolygon(pts.length > 0 ? JSON.stringify(pts) : '');
       }
+    });
+
+    // Sync settings to localStorage
+    effect(() => {
+      localStorage.setItem('settings_show_grid', String(this.showGrid()));
+    });
+    effect(() => {
+      localStorage.setItem('settings_show_sectors', String(this.showSectors()));
+    });
+    effect(() => {
+      localStorage.setItem('settings_show_labels', String(this.showLabels()));
+    });
+    effect(() => {
+      localStorage.setItem('settings_planet_color_mode', this.planetColorMode());
+    });
+    effect(() => {
+      localStorage.setItem('settings_star_size', String(this.starSize()));
+    });
+    effect(() => {
+      localStorage.setItem('settings_system_label_mode', this.systemLabelMode());
     });
   }
 

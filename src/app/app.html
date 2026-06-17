@@ -51,10 +51,10 @@
         <button class="tab-btn" [class.active]="activeTab() === 'admin-tab'" (click)="activeTab.set('admin-tab')">
           {{ 'tabs.creator' | translate }}
         </button>
-        <button class="tab-btn" [class.active]="activeTab() === 'settings-tab'" (click)="activeTab.set('settings-tab')">
-          {{ 'tabs.settings' | translate }}
-        </button>
       }
+      <button class="tab-btn" [class.active]="activeTab() === 'settings-tab'" (click)="activeTab.set('settings-tab')">
+        {{ 'tabs.settings' | translate }}
+      </button>
     </div>
 
     <div class="tab-content">
@@ -97,6 +97,7 @@
           [(showLabels)]="showLabels"
           [(planetColorMode)]="planetColorMode"
           [(starSize)]="starSize"
+          [(systemLabelMode)]="systemLabelMode"
           (recenterMap)="recenterMap()">
         </app-settings-tab>
       </div>
@@ -110,6 +111,7 @@
     [showLabels]="showLabels()"
     [planetColorMode]="planetColorMode()"
     [starSize]="starSize()"
+    [systemLabelMode]="systemLabelMode()"
     [isPlaceMode]="isPlaceMode()"
     [isSectorPinMode]="isSectorPinMode()"
     [isEditMode]="isEditMode()"

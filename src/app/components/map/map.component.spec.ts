@@ -8,6 +8,7 @@ import { Connection, StarSystem } from '../../models/galaxy.model';
 describe('MapComponent', () => {
   let component: MapComponent;
   let service: GalaxyService;
+  let fixture: any;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -18,7 +19,7 @@ describe('MapComponent', () => {
       ]
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(MapComponent);
+    fixture = TestBed.createComponent(MapComponent);
     component = fixture.componentInstance;
     service = TestBed.inject(GalaxyService);
   });
@@ -155,6 +156,22 @@ describe('MapComponent', () => {
       facilities: []
     }]);
     expect(component.getSystemLabelY(sys)).toBe(77);
+
+    // Set systemLabelMode to 'below' and add designation -> should shift up by 10px (77 - 10 = 67)
+    const sysWithDesignation: StarSystem = {
+      ...sys,
+      designation: 'OR-912A'
+    };
+    fixture.componentRef.setInput('systemLabelMode', 'below');
+    fixture.detectChanges();
+    expect(component.getSystemLabelY(sysWithDesignation)).toBe(67);
+
+    // Set systemLabelMode to 'below' but no designation -> should not shift up (remains 77)
+    const sysWithoutDesignation: StarSystem = {
+      ...sys,
+      designation: ''
+    };
+    expect(component.getSystemLabelY(sysWithoutDesignation)).toBe(77);
   });
 
   it('should return the correct connection label', () => {

@@ -360,6 +360,16 @@ main:active {
   font-weight: bold;
 }
 
+.system-label-designation {
+  font-size: 7.5px;
+  fill: var(--text-muted);
+  transition: var(--transition-smooth);
+}
+
+.system-node:hover + .system-label .system-label-designation {
+  fill: var(--text-secondary);
+}
+
 .sector-label {
   font-family: var(--font-mono);
   font-weight: 700;

@@ -22,6 +22,7 @@ export class SettingsTabComponent {
   showLabels = model<boolean>(true);
   planetColorMode = model<string>('star');
   starSize = model<number>(10);
+  systemLabelMode = model<string>('name');
 
   // DB Config Fields
   dbUrlInput = '';

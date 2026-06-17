@@ -166,7 +166,16 @@
           @for (sys of galaxyService.systems(); track sys.id) {
             <text [attr.x]="sys.x" [attr.y]="getSystemLabelY(sys)" class="system-label" text-anchor="middle"
                   [attr.id]="'label-' + sys.id">
-              {{ sys.name }}
+              @if (systemLabelMode() === 'name') {
+                {{ sys.name }}
+              } @else if (systemLabelMode() === 'next') {
+                {{ sys.name }}{{ sys.designation ? ' (' + sys.designation + ')' : '' }}
+              } @else if (systemLabelMode() === 'below') {
+                <tspan [attr.x]="sys.x" dy="0">{{ sys.name }}</tspan>
+                @if (sys.designation) {
+                  <tspan [attr.x]="sys.x" dy="10" class="system-label-designation">{{ sys.designation }}</tspan>
+                }
+              }
             </text>
           }
         }
