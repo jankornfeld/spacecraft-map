@@ -61,6 +61,7 @@ export class GalaxyService {
   selectedSystemId = signal<string | null>(null);
   selectedPlanetId = signal<string | null>(null);
   selectedStationId = signal<string | null>(null);
+  selectedSectorId = signal<string | null>(null);
 
   // Search and Filters
   searchQuery = signal<string>('');
@@ -590,6 +591,34 @@ export class GalaxyService {
   }
 
   // --- CRUD DELETES ---
+  async dbDeleteSector(sectorId: string) {
+    this.sectors.update(current => current.filter(s => s.id !== sectorId));
+    this.systems.update(current => current.map(s => {
+      if (s.sectorId === sectorId) {
+        return { ...s, sectorId: '' };
+      }
+      return s;
+    }));
+
+    this.saveLocalBackup();
+
+    if (this.isDbConnected() && this.supabaseClient) {
+      const { error } = await this.supabaseClient.from('sectors').delete().eq('id', sectorId);
+      if (error) {
+        console.error(error);
+        this.showToast(this.translate.instant('toasts.db_failed'), 'error');
+      } else {
+        this.showToast(this.translate.instant('toasts.sector_deleted_db'), 'success');
+      }
+    } else {
+      this.showToast(this.translate.instant('toasts.sector_deleted_local'), 'success');
+    }
+
+    if (this.selectedSectorId() === sectorId) {
+      this.selectedSectorId.set(null);
+    }
+  }
+
   async dbDeleteSystem(sysId: string) {
     this.systems.update(current => current.filter(s => s.id !== sysId));
     this.connections.update(current => current.filter(c => c.from_system_id !== sysId && c.to_system_id !== sysId));
@@ -770,6 +799,15 @@ export class GalaxyService {
     } else if (eventType === 'DELETE') {
       const deletedId = payload.old.id;
       this.sectors.update(current => current.filter(item => item.id !== deletedId));
+      this.systems.update(current => current.map(s => {
+        if (s.sectorId === deletedId) {
+          return { ...s, sectorId: '' };
+        }
+        return s;
+      }));
+      if (this.selectedSectorId() === deletedId) {
+        this.selectedSectorId.set(null);
+      }
     }
   }
 
@@ -946,6 +984,13 @@ export class GalaxyService {
     return this.systems().find(s => s.id === activeId) || null;
   });
 
+  // Get active selected sector entity
+  selectedSector = computed(() => {
+    const activeId = this.selectedSectorId();
+    if (!activeId) return null;
+    return this.sectors().find(s => s.id === activeId) || null;
+  });
+
   // Get planets belonging to selected system
   selectedSystemPlanets = computed(() => {
     const activeId = this.selectedSystemId();
@@ -991,6 +1036,7 @@ export class GalaxyService {
 
   selectSystem(sysId: string) {
     this.selectedSystemId.set(sysId);
+    this.selectedSectorId.set(null);
 
     // Clear sub-selections
     const sysPlanets = this.selectedSystemPlanets();
@@ -1006,6 +1052,13 @@ export class GalaxyService {
     } else {
       this.selectedStationId.set(null);
     }
+  }
+
+  selectSector(sectorId: string) {
+    this.selectedSectorId.set(sectorId);
+    this.selectedSystemId.set(null);
+    this.selectedPlanetId.set(null);
+    this.selectedStationId.set(null);
   }
 
   async removePlanetResource(planetId: string, res: string) {

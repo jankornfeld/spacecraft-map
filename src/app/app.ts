@@ -236,5 +236,6 @@ export class App implements OnInit {
     this.galaxyService.selectedSystemId.set(null);
     this.galaxyService.selectedPlanetId.set(null);
     this.galaxyService.selectedStationId.set(null);
+    this.galaxyService.selectedSectorId.set(null);
   }
 }

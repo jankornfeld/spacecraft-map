@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GalaxyService } from '../../services/galaxy.service';
+import { Sector } from '../../models/galaxy.model';
 
 @Component({
   selector: 'app-detail-panel',
@@ -137,6 +138,39 @@ export class DetailPanelComponent {
   async deleteStarSystem(sysId: string) {
     if (confirm(this.translate.instant('confirmations.delete_system', { name: sysId }))) {
       await this.galaxyService.dbDeleteSystem(sysId);
+    }
+  }
+
+  async updateSectorName(sector: Sector, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newName = input.value.trim();
+    if (newName && newName !== sector.name) {
+      const updated = { ...sector, name: newName };
+      await this.galaxyService.dbSaveSector(updated);
+    }
+  }
+
+  async updateSectorDesignation(sector: Sector, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newDesignation = input.value.trim();
+    if (newDesignation !== sector.level) {
+      const updated = { ...sector, level: newDesignation || undefined };
+      await this.galaxyService.dbSaveSector(updated);
+    }
+  }
+
+  async updateSectorColor(sector: Sector, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newColor = input.value;
+    if (newColor && newColor !== sector.color) {
+      const updated = { ...sector, color: newColor };
+      await this.galaxyService.dbSaveSector(updated);
+    }
+  }
+
+  async deleteSector(sectorId: string) {
+    if (confirm(this.translate.instant('confirmations.delete_sector', { name: sectorId }))) {
+      await this.galaxyService.dbDeleteSector(sectorId);
     }
   }
 }

@@ -212,11 +212,18 @@ main:active {
   /*stroke-width: 1.5;
   stroke-dasharray: 4 6;*/
   transition: var(--transition-smooth);
+  cursor: pointer;
 }
 
 .sector-polygon:hover {
   fill-opacity: 0.08;
   stroke-width: 2.5;
+}
+
+.sector-polygon.selected-sector {
+  fill-opacity: 0.15;
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.25));
 }
 
 .connection-lane {

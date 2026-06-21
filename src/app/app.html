@@ -10,7 +10,7 @@
   <button (click)="cancelModes()" class="btn btn-sec btn-sm" style="color: var(--accent-red)">{{ 'place_banner.cancel' | translate }}</button>
 </div>
 
-<div id="app-layout" [class.details-open]="galaxyService.selectedSystem() !== null">
+<div id="app-layout" [class.details-open]="galaxyService.selectedSystem() !== null || galaxyService.selectedSector() !== null">
 
   <!-- Top Header -->
   <header>

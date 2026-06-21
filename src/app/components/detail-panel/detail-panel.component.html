@@ -1,4 +1,4 @@
-<div id="details-panel" [style.display]="galaxyService.selectedSystem() ? 'flex' : 'none'">
+<div id="details-panel" [style.display]="(galaxyService.selectedSystem() || galaxyService.selectedSector()) ? 'flex' : 'none'">
   @if (galaxyService.selectedSystem(); as sys) {
     <div
       style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
@@ -369,6 +369,94 @@
           <button class="btn btn-danger btn-sm" style="flex:1;"
                   (click)="deleteStarSystem(sys.id)">{{ 'details.delete_system' | translate }}
           </button>
+        </div>
+      }
+    </div>
+  } @else if (galaxyService.selectedSector(); as sector) {
+    <!-- Sector Details -->
+    <div
+      style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
+      <div>
+        <h2 style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; color: {{ sector.color }};">
+          {{ sector.name }}
+        </h2>
+        <span style="font-size: 0.8rem; color: var(--text-secondary); font-family: var(--font-mono);">
+          {{ 'details.sector_details' | translate }}
+        </span>
+      </div>
+      <button class="control-btn" style="width: 24px; height: 24px; font-size: 0.8rem; border-radius: 4px;"
+              (click)="closePanel.emit()">✕
+      </button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.85rem;">
+      <div>
+        <span style="color: var(--text-secondary);">{{ 'details.sector_id' | translate }}:</span>
+        <code style="font-family: var(--font-mono); margin-left: 6px; font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">{{ sector.id }}</code>
+      </div>
+
+      <div>
+        <span style="color: var(--text-secondary);">{{ 'sectors_panel.title' | translate }}:</span>
+        <span style="font-weight: 600; margin-left: 6px;">
+          {{ 'sectors_panel.systems_count' | translate: { count: galaxyService.getSectorSystemCount(sector.id) } }}
+        </span>
+      </div>
+
+      <!-- Admin Editing Interface -->
+      @if (galaxyService.isAdmin()) {
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px; border-top: 1px dashed var(--border-light); padding-top: 14px;">
+          <div class="form-group" style="margin-bottom: 4px;">
+            <label for="edit-sector-name">{{ 'details.sector_name' | translate }}</label>
+            <input type="text" id="edit-sector-name" [value]="sector.name"
+                   (change)="updateSectorName(sector, $event)"
+                   style="padding: 8px 10px; font-size: 0.85rem;" />
+          </div>
+
+          <!--<div class="form-group" style="margin-bottom: 4px;">
+            <label for="edit-sector-designation">{{ 'details.sector_designation' | translate }}</label>
+            <input type="text" id="edit-sector-designation" [value]="sector.level || ''"
+                   (change)="updateSectorDesignation(sector, $event)"
+                   placeholder="e.g. Exploration, Core, Outer Rim"
+                   style="padding: 8px 10px; font-size: 0.85rem;" />
+          </div>-->
+
+          <div class="form-group" style="margin-bottom: 4px;">
+            <label for="edit-sector-color">{{ 'creator.sector_color' | translate }}</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="color" id="edit-sector-color" [value]="sector.color"
+                     (change)="updateSectorColor(sector, $event)"
+                     style="width: 42px; height: 32px; padding: 0; border: 1px solid var(--border-light); background: none; cursor: pointer; border-radius: 4px;" />
+              <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-secondary);">{{ sector.color }}</span>
+            </div>
+          </div>
+
+          <!-- Delete Sector Button (Admin Only) -->
+          <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 14px;">
+            <button class="btn btn-danger btn-sm" style="width: 100%;"
+                    (click)="deleteSector(sector.id)">{{ 'details.delete_sector' | translate }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- Read-Only Interface for non-admins -->
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px; border-top: 1px dashed var(--border-light); padding-top: 14px;">
+          <div>
+            <span style="color: var(--text-secondary);">{{ 'details.sector_name' | translate }}:</span>
+            <span style="font-weight: 600; margin-left: 8px;">{{ sector.name }}</span>
+          </div>
+
+          <!--<div>
+            <span style="color: var(&#45;&#45;text-secondary);">{{ 'details.sector_designation' | translate }}:</span>
+            <span style="font-weight: 600; margin-left: 8px;">
+              {{ sector.level || ('details.no_designation' | translate) }}
+            </span>
+          </div>-->
+
+          <div>
+            <span style="color: var(--text-secondary);">{{ 'creator.sector_color' | translate }}:</span>
+            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-left: 8px; vertical-align: middle;" [style.backgroundColor]="sector.color"></span>
+            <span style="font-family: var(--font-mono); margin-left: 6px; color: var(--text-secondary);">{{ sector.color }}</span>
+          </div>
         </div>
       }
     </div>

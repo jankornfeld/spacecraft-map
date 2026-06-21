@@ -25,9 +25,11 @@
             @if (sec.polygon && sec.polygon.length >= 3 && isSectorVisible(sec.id)) {
               <path [attr.d]="getRoundedPolygonPath(sec.polygon, 20)"
                     class="sector-polygon"
+                    [class.selected-sector]="galaxyService.selectedSectorId() === sec.id"
                     [attr.stroke]="sec.color"
                     [attr.fill]="sec.color"
-                    [attr.id]="'svg-' + sec.id"></path>
+                    [attr.id]="'svg-' + sec.id"
+                    (click)="onSectorClick(sec, $event)"></path>
             }
           }
         }

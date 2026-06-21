@@ -4,10 +4,13 @@
 </div>
 <div id="sectors-list" style="display: flex; flex-direction: column; gap: 10px;">
   @for (sec of galaxyService.sectors(); track sec.id) {
-    <div class="result-item sector-item" [style.borderLeft]="'4px solid ' + sec.color">
+    <div class="result-item sector-item" [class.active]="galaxyService.selectedSectorId() === sec.id" [style.borderLeft]="'4px solid ' + sec.color">
       <div class="sector-item-info" (click)="flyToCentroid(sec)">
         <div class="result-header">
           <span>{{ sec.name }}</span>
+          @if (sec.level) {
+            <span class="badge badge-blue" style="font-size: 0.7rem; padding: 2px 6px;">{{ sec.level }}</span>
+          }
         </div>
         <div class="result-subtitle">{{ 'sectors_panel.systems_count' | translate: { count: galaxyService.getSectorSystemCount(sec.id) } }}</div>
       </div>

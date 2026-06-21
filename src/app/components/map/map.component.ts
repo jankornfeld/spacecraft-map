@@ -273,6 +273,12 @@ export class MapComponent {
     this.systemSelected.emit(sysId);
   }
 
+  onSectorClick(sec: Sector, event: MouseEvent) {
+    if (this.isEditMode() || this.isSectorPinMode() || this.isPlaceMode()) return;
+    event.stopPropagation();
+    this.galaxyService.selectSector(sec.id);
+  }
+
   zoomIn() {
     this.scale = Math.min(this.scale * 1.3, 10);
   }

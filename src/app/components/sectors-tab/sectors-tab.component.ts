@@ -18,6 +18,7 @@ export class SectorsTabComponent {
 
   flyToCentroid(sector: Sector) {
     this.flyToSector.emit(sector);
+    this.galaxyService.selectSector(sector.id);
   }
 
   toggleSectorVisibility(sectorId: string, event: Event) {

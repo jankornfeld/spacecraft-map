@@ -174,7 +174,12 @@
     "delete_system": "Sternensystem löschen",
     "image_url": "Basis-Bild-URL",
     "image_url_placeholder": "Bild-URL (z. B. https://...)",
-    "open_link_btn": "Bild-Link öffnen"
+    "open_link_btn": "Bild-Link öffnen",
+    "sector_details": "Sektordetails",
+    "sector_id": "Sektor-ID",
+    "sector_name": "Sektorname",
+    "sector_designation": "Sektor-Bezeichnung",
+    "delete_sector": "Sektor löschen"
   },
   "login_modal": {
     "title": "Administrator-Anmeldung",
@@ -227,13 +232,16 @@
     "imported": "Galaxie-Layout erfolgreich importiert",
     "import_failed": "Import fehlgeschlagen: {{message}}",
     "sector_failed": "Sektorerstellung fehlgeschlagen: {{message}}",
-    "min_polygon_points": "Ein Sektor benötigt mindestens 3 Grenzpunkte!"
+    "min_polygon_points": "Ein Sektor benötigt mindestens 3 Grenzpunkte!",
+    "sector_deleted_db": "Sektor aus der Datenbank gelöscht",
+    "sector_deleted_local": "Sektor lokal gelöscht"
   },
   "confirmations": {
     "delete_planet": "Sind Sie sicher, dass Sie den Planeten {{name}} löschen möchten?",
     "delete_station": "Sind Sie sicher, dass Sie die Raumstation {{name}} löschen möchten?",
     "delete_system": "Sternensystem {{name}} und alle zugehörigen Planeten/Verbindungen löschen?",
-    "wipe_db": "🚨 WARNUNG: Sind Sie sicher, dass Sie ALLE benutzerdefinierten Sektoren, Systeme und FTL-Pfade löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+    "wipe_db": "🚨 WARNUNG: Sind Sie sicher, dass Sie ALLE benutzerdefinierten Sektoren, Systeme und FTL-Pfade löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "delete_sector": "Sind Sie sicher, dass Sie den Sektor {{name}} löschen möchten? Dadurch wird die Sektorzuordnung aller Systeme darin aufgehoben."
   },
   "resources": {
     "copperstone": "Kupferstein",

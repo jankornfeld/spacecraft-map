@@ -174,7 +174,12 @@
     "delete_system": "Delete Star System",
     "image_url": "Base Image URL",
     "image_url_placeholder": "Image URL (e.g. https://...)",
-    "open_link_btn": "Open Image Link"
+    "open_link_btn": "Open Image Link",
+    "sector_details": "Sector Details",
+    "sector_id": "Sector ID",
+    "sector_name": "Sector Name",
+    "sector_designation": "Sector Designation",
+    "delete_sector": "Delete Sector"
   },
   "login_modal": {
     "title": "Administrator Login",
@@ -227,13 +232,16 @@
     "imported": "Galaxy layout imported successfully",
     "import_failed": "Import failed: {message}",
     "sector_failed": "Sector creation failed: {message}",
-    "min_polygon_points": "A sector requires at least 3 boundary points!"
+    "min_polygon_points": "A sector requires at least 3 boundary points!",
+    "sector_deleted_db": "Sector deleted from database",
+    "sector_deleted_local": "Sector deleted locally"
   },
   "confirmations": {
     "delete_planet": "Are you sure you want to delete planet {name}?",
     "delete_station": "Are you sure you want to delete space station {name}?",
     "delete_system": "Delete star system {name} and its planets/connections?",
-    "wipe_db": "🚨 WARNING: Are you sure you want to delete ALL custom sectors, systems, and FTL pathways? This action cannot be undone."
+    "wipe_db": "🚨 WARNING: Are you sure you want to delete ALL custom sectors, systems, and FTL pathways? This action cannot be undone.",
+    "delete_sector": "Are you sure you want to delete sector {name}? This will clear the sector assignment of all systems within it."
   },
   "resources": {
     "copperstone": "copperstone",
