@@ -26,6 +26,24 @@
         </button>
       </div>
 
+      <!-- Admin System Editing Interface -->
+      @if (galaxyService.isAdmin()) {
+        <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px dashed var(--border-light); padding-top: 10px; margin-top: 4px;">
+          <div class="form-group" style="margin-bottom: 2px;">
+            <label for="edit-system-name" style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">{{ 'details.system_name' | translate }}</label>
+            <input type="text" id="edit-system-name" [value]="sys.name"
+                   (change)="updateSystemName(sys, $event)"
+                   style="padding: 6px 8px; font-size: 0.8rem; width: 100%; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-light); background: rgba(0,0,0,0.2); color: var(--text-primary);" />
+          </div>
+          <div class="form-group" style="margin-bottom: 2px;">
+            <label for="edit-system-designation" style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">{{ 'details.system_designation' | translate }}</label>
+            <input type="text" id="edit-system-designation" [value]="sys.designation || ''"
+                   (change)="updateSystemDesignation(sys, $event)"
+                   style="padding: 6px 8px; font-size: 0.8rem; width: 100%; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-light); background: rgba(0,0,0,0.2); color: var(--text-primary);" />
+          </div>
+        </div>
+      }
+
       <!-- Planets Section inside details-panel -->
       <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 8px;">
         <label for="detail-planet-select"
@@ -52,6 +70,22 @@
         <!-- Planet Details Sub-Panel -->
         @if (galaxyService.selectedPlanet(); as planet) {
           <div id="planet-details-subpanel">
+            <!-- Planet Name Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">
+              <h3 style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+                {{ planet.name }}
+              </h3>
+            </div>
+
+            <!-- Admin Planet Name Editor -->
+            @if (galaxyService.isAdmin()) {
+              <div class="form-group" style="margin-top: 8px; margin-bottom: 8px;">
+                <label for="edit-planet-name" style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">{{ 'details.planet_name' | translate }}</label>
+                <input type="text" id="edit-planet-name" [value]="planet.name"
+                       (change)="updatePlanetName(planet, $event)"
+                       style="padding: 6px 8px; font-size: 0.8rem; width: 100%; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-light); background: rgba(0,0,0,0.2); color: var(--text-primary);" />
+              </div>
+            }
 
             <!-- Resources Section -->
             <div style="margin-top: 12px;">

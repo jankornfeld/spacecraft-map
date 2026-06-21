@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GalaxyService } from '../../services/galaxy.service';
-import { Sector } from '../../models/galaxy.model';
+import { Sector, Planet, StarSystem } from '../../models/galaxy.model';
 
 @Component({
   selector: 'app-detail-panel',
@@ -138,6 +138,33 @@ export class DetailPanelComponent {
   async deleteStarSystem(sysId: string) {
     if (confirm(this.translate.instant('confirmations.delete_system', { name: sysId }))) {
       await this.galaxyService.dbDeleteSystem(sysId);
+    }
+  }
+
+  async updatePlanetName(planet: Planet, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newName = input.value.trim();
+    if (newName && newName !== planet.name) {
+      const updated = { ...planet, name: newName };
+      await this.galaxyService.dbSavePlanet(updated);
+    }
+  }
+
+  async updateSystemName(system: StarSystem, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newName = input.value.trim();
+    if (newName && newName !== system.name) {
+      const updated = { ...system, name: newName };
+      await this.galaxyService.dbSaveSystem(updated);
+    }
+  }
+
+  async updateSystemDesignation(system: StarSystem, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newDesignation = input.value.trim();
+    if (newDesignation !== system.designation) {
+      const updated = { ...system, designation: newDesignation || undefined };
+      await this.galaxyService.dbSaveSystem(updated);
     }
   }
 

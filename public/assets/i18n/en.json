@@ -179,6 +179,9 @@
     "sector_id": "Sector ID",
     "sector_name": "Sector Name",
     "sector_designation": "Sector Designation",
+    "planet_name": "Planet Name",
+    "system_name": "System Name",
+    "system_designation": "System Designation",
     "delete_sector": "Delete Sector"
   },
   "login_modal": {

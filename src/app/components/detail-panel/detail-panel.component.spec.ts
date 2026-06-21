@@ -21,6 +21,7 @@ describe('DetailPanelComponent', () => {
     const fixture = TestBed.createComponent(DetailPanelComponent);
     component = fixture.componentInstance;
     service = TestBed.inject(GalaxyService);
+    service.disconnectDb();
   });
 
   it('should initialize with default empty values', () => {
@@ -82,5 +83,66 @@ describe('DetailPanelComponent', () => {
 
     const updatedPlanet = service.planets().find(p => p.id === 'planet-1');
     expect(updatedPlanet?.bases?.[0].imageUrl).toBe('https://example.com/updated.png');
+  });
+
+  it('should update planet name', async () => {
+    const planet: Planet = {
+      id: 'planet-1',
+      name: 'Planet 1',
+      systemId: 'system-1',
+      resources: [],
+      deposits: [],
+      bases: []
+    };
+    service.planets.set([planet]);
+
+    const mockEvent = { target: { value: 'New Planet Name' } } as any;
+    await component.updatePlanetName(planet, mockEvent);
+
+    const updatedPlanet = service.planets().find(p => p.id === 'planet-1');
+    expect(updatedPlanet?.name).toBe('New Planet Name');
+  });
+
+  it('should update system name', async () => {
+    const system = {
+      id: 'system-1',
+      name: 'System 1',
+      starType: 'G',
+      starColor: 'Yellow',
+      index: 0,
+      sectorId: 'sector-1',
+      color: '#ffffff',
+      x: 100,
+      y: 100
+    };
+    service.systems.set([system]);
+
+    const mockEvent = { target: { value: 'New System Name' } } as any;
+    await component.updateSystemName(system, mockEvent);
+
+    const updatedSystem = service.systems().find(s => s.id === 'system-1');
+    expect(updatedSystem?.name).toBe('New System Name');
+  });
+
+  it('should update system designation', async () => {
+    const system = {
+      id: 'system-1',
+      name: 'System 1',
+      starType: 'G',
+      starColor: 'Yellow',
+      index: 0,
+      sectorId: 'sector-1',
+      color: '#ffffff',
+      x: 100,
+      y: 100,
+      designation: 'OLD-1'
+    };
+    service.systems.set([system]);
+
+    const mockEvent = { target: { value: 'NEW-1' } } as any;
+    await component.updateSystemDesignation(system, mockEvent);
+
+    const updatedSystem = service.systems().find(s => s.id === 'system-1');
+    expect(updatedSystem?.designation).toBe('NEW-1');
   });
 });
